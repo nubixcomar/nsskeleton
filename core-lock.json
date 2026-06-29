@@ -1,6 +1,6 @@
 {
     "core_version": "1.15.0",
-    "count": 414,
+    "count": 415,
     "files": {
         ".env.example": "d25737e94d15375fc633a74bf9cfcf5609cc5c796d695c29cbd35d503cfe2d6c",
         ".gitignore": "74b3a121575c7d8756480c3a078c4585354fbb2c223b12e65f410a94d156a1dc",
@@ -339,6 +339,7 @@
         "system/database/migrations/20260627_011000_create_file_shares.sql": "6fc1b8c2752c96153ef7c63a1dc101535386f7c31f30af1b2241e7c0087ad71d",
         "system/database/migrations/20260628_010000_add_username_usertype_to_users.sql": "1f0587c52025a7351325ea48a1763c2aea4bec8c69f266c8977ca403b26e1d38",
         "system/database/migrations/app/README.md": "4da607391acc1b1b990391b70e763c1d60bae9dbe1067b8ae3f488f0447f42ee",
+        "system/database/schema.sql": "354b0c1123b9cb152daa3db85e133af02459eebf291366117f16f32ed7500e77",
         "system/database/seed-demo.php": "b9008aad9417cea24fcec782306aaba5c0536d52e3f7edb51c47eeadb00247f0",
         "system/database/seed.php": "ebfc1f95e3dc9b4cc918a339bf10edd40b78e46c99123597dcd8aeba915b07cf",
         "system/database/seeds/.gitkeep": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
