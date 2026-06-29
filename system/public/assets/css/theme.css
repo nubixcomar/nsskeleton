@@ -1,0 +1,42 @@
+/* Tema oscuro de nsSkeleton — overrides de utilidades comunes bajo `.dark`.
+   No requiere recompilar Tailwind: reescribe los colores más usados cuando el
+   elemento <html> tiene la clase `dark`. */
+
+.dark body { background-color: #0b1220; color: #e2e8f0; }
+
+.dark .bg-white      { background-color: #1e293b !important; }
+.dark .bg-slate-50   { background-color: #0f172a !important; }
+.dark .bg-slate-100  { background-color: #0b1220 !important; }
+
+.dark .text-slate-900 { color: #f1f5f9 !important; }
+.dark .text-slate-800 { color: #e2e8f0 !important; }
+.dark .text-slate-700 { color: #cbd5e1 !important; }
+.dark .text-slate-600 { color: #94a3b8 !important; }
+.dark .text-slate-500 { color: #94a3b8 !important; }
+.dark .text-slate-400 { color: #64748b !important; }
+
+.dark .ring-slate-200  { --tw-ring-color: #334155 !important; }
+.dark .border-slate-200 { border-color: #334155 !important; }
+.dark .border-slate-300 { border-color: #475569 !important; }
+
+.dark .divide-slate-100 > :not([hidden]) ~ :not([hidden]) { border-color: #1e293b !important; }
+.dark .divide-slate-200 > :not([hidden]) ~ :not([hidden]) { border-color: #334155 !important; }
+
+.dark input, .dark textarea, .dark select {
+    background-color: #0f172a !important;
+    color: #e2e8f0 !important;
+    border-color: #475569 !important;
+}
+
+.dark .hover\:bg-slate-50:hover  { background-color: #334155 !important; }
+.dark .hover\:bg-slate-100:hover { background-color: #334155 !important; }
+
+/* Mantener legibles los badges de color suave en oscuro. */
+.dark .bg-emerald-50 { background-color: #064e3b !important; }
+.dark .bg-red-50     { background-color: #7f1d1d !important; }
+.dark .bg-amber-50   { background-color: #78350f !important; }
+.dark .bg-indigo-50  { background-color: #312e81 !important; }
+.dark .text-emerald-700 { color: #6ee7b7 !important; }
+.dark .text-red-700     { color: #fca5a5 !important; }
+.dark .text-amber-800,  .dark .text-amber-700 { color: #fcd34d !important; }
+.dark .text-indigo-700  { color: #c7d2fe !important; }

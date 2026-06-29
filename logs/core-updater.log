@@ -1,0 +1,6 @@
+2026-06-28 18:30 | claude-opus-4-8 | Fase 1+2 actualizacion de core: frontera manifiesto/lock + split agentico core/app (v1.11.0) | walkthrough/2026-06-28_1830_core-updater_fase1-2-frontera-split.md
+2026-06-28 19:30 | claude-opus-4-8 | Fase 3 puntos de extension core/app: Config overrides + routes.app + vistas child-theme + migraciones app (v1.12.0) | walkthrough/2026-06-28_1930_core-updater_fase3-extension-points.md
+2026-06-28 20:30 | claude-opus-4-8 | Fase 4 updater de core: CoreUpdater (plan/apply/rollback) + CLI core-update.php (v1.13.0) | walkthrough/2026-06-28_2030_core-updater_fase4-updater.md
+2026-06-28 21:30 | claude-opus-4-8 | Fase 6 publicacion del core: build-core-package.php + /release integrado + updater --url (v1.14.0) | walkthrough/2026-06-28_2130_core-updater_fase6-publicacion.md
+2026-06-28 22:15 | claude-opus-4-8 | Fase 5 capa asistida: comando /actualizar-core + skill/agente core-updater + docs/CORE-UPDATE.md (v1.15.0) — roadmap actualizacion de core COMPLETO | walkthrough/2026-06-28_2215_core-updater_fase5-asistida.md
+2026-06-28 22:40 | claude-opus-4-8 | roadmap del core: mecanismo de actualizacion (v1.11-1.15) marcado COMPLETO + backlog de mejoras (3-way merge, latest.json, UI admin) en docs/roadmap.md

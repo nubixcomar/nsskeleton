@@ -1,0 +1,16 @@
+# Protección a nivel raíz del proyecto.
+# IMPORTANTE: lo ideal es apuntar el DocumentRoot del virtualhost a system/public/.
+# Mientras tanto, esto bloquea el acceso directo a archivos sensibles.
+
+# Bloquear .env, dotfiles y logs.
+<FilesMatch "^\.env|\.(env|log|md|yml|yaml|gitignore)$">
+    <IfModule mod_authz_core.c>
+        Require all denied
+    </IfModule>
+    <IfModule !mod_authz_core.c>
+        Deny from all
+    </IfModule>
+</FilesMatch>
+
+# Evitar listado de directorios.
+Options -Indexes

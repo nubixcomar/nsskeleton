@@ -1,0 +1,47 @@
+/* Sidebar del backend de nsSkeleton: colapsable a solo-iconos con flyouts en desktop. */
+
+[x-cloak] { display: none !important; }
+
+.app-sidebar {
+    transition: width .2s ease, transform .2s ease;
+}
+
+/* Scrollbar fina dentro del menú */
+.app-nav { scrollbar-width: thin; scrollbar-color: #334155 transparent; }
+.app-nav::-webkit-scrollbar { width: 6px; }
+.app-nav::-webkit-scrollbar-thumb { background: #334155; border-radius: 9999px; }
+.app-nav::-webkit-scrollbar-track { background: transparent; }
+
+/* Barra de progreso del toast: se encoge hasta desaparecer */
+@keyframes toastbar { from { width: 100%; } to { width: 0%; } }
+.toast-bar { width: 100%; animation-name: toastbar; animation-timing-function: linear; animation-fill-mode: forwards; }
+
+/* Editor WYSIWYG */
+.wy-btn { padding: 0.2rem 0.5rem; border-radius: 0.375rem; font-size: 0.8rem; line-height: 1; color: #475569; }
+.wy-btn:hover { background: #e2e8f0; color: #1e293b; }
+.wy-editor:empty::before { content: attr(data-placeholder); color: #94a3b8; pointer-events: none; }
+.wy-editor h2 { font-size: 1.15rem; font-weight: 700; margin: .5rem 0 .25rem; }
+.wy-editor p { margin: .25rem 0; }
+.wy-editor ul { list-style: disc; padding-left: 1.5rem; margin: .25rem 0; }
+.wy-editor ol { list-style: decimal; padding-left: 1.5rem; margin: .25rem 0; }
+.wy-editor a { color: #4f46e5; text-decoration: underline; }
+
+/* El rail (icono de grupo) solo existe en modo colapsado */
+.sb-grouprail { display: none; }
+
+/* --- Modo colapsado: solo aplica en desktop (lg+) --- */
+@media (min-width: 1024px) {
+    html.sb-collapsed .app-sidebar { width: 5rem; }
+    html.sb-collapsed .sb-label,
+    html.sb-collapsed .sb-brand-name { display: none; }
+    html.sb-collapsed .sb-item {
+        justify-content: center;
+        padding-left: 0.5rem;
+        padding-right: 0.5rem;
+    }
+    html.sb-collapsed .app-brand { justify-content: center; padding-left: 0; padding-right: 0; }
+
+    /* En colapsado: ocultar la lista expandida del grupo y mostrar el rail */
+    html.sb-collapsed .sb-groupfull { display: none; }
+    html.sb-collapsed .sb-grouprail { display: flex; cursor: pointer; }
+}

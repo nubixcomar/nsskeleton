@@ -1,0 +1,12 @@
+# Front controller: enruta todo a index.php salvo archivos/carpetas reales.
+<IfModule mod_rewrite.c>
+    RewriteEngine On
+
+    # No reescribir si el archivo o directorio existe (assets, etc.)
+    RewriteCond %{REQUEST_FILENAME} !-f
+    RewriteCond %{REQUEST_FILENAME} !-d
+    RewriteRule ^ index.php [QSA,L]
+</IfModule>
+
+# Evitar listado de directorios
+Options -Indexes

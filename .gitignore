@@ -1,0 +1,41 @@
+# --- Entorno y secretos ---
+.env
+*.local
+
+# --- IA materializada (generada por el instalador, no versionar) ---
+/.claude/
+/.openai/
+/.cursor/
+
+# --- Dependencias ---
+/vendor/
+/node_modules/
+
+# --- Binario de build de Tailwind (grande; se descarga con tools/build-css.sh) ---
+/tools/bin/
+
+# --- Logo/branding subido desde el panel ---
+/system/public/assets/branding/logo.*
+
+# --- Paquetes descargables generados (landing) ---
+/landing/downloads/*
+!/landing/downloads/.gitkeep
+
+# --- Almacenamiento y temporales ---
+/storage/backups/*
+!/storage/backups/.gitkeep
+/storage/cache/*
+!/storage/cache/.gitkeep
+/storage/uploads/*
+!/storage/uploads/.gitkeep
+*.log.tmp
+
+# --- Logs agénticos: se versionan walkthroughs e índices, no ruido temporal ---
+# (Los logs/*.log y walkthroughs SÍ se versionan: son trazabilidad del proyecto)
+
+# --- Sistema operativo / IDE ---
+Thumbs.db
+.DS_Store
+.idea/
+.vscode/*
+!.vscode/extensions.json

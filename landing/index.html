@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html lang="es" class="scroll-smooth">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>nsSkeleton 1.9.0 — Framework agéntico + sistema base</title>
+    <meta name="description" content="nsSkeleton: esqueleto agéntico y de sistema para iniciar proyectos de software acelerados, sin grandes conocimientos técnicos.">
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-slate-50 text-slate-800 antialiased">
+
+<!-- Nav -->
+<header class="sticky top-0 z-20 border-b border-slate-200 bg-white/80 backdrop-blur">
+    <div class="mx-auto flex max-w-6xl items-center justify-between px-6 py-3">
+        <div class="flex items-center gap-2">
+            <div class="flex h-9 w-9 items-center justify-center rounded-xl bg-indigo-600 font-bold text-white">ns</div>
+            <span class="font-semibold">nsSkeleton</span>
+            <span class="rounded-full bg-emerald-100 px-2 py-0.5 text-xs font-medium text-emerald-700">v1.9.0</span>
+        </div>
+        <nav class="hidden items-center gap-6 text-sm text-slate-600 sm:flex">
+            <a href="#que-es" class="hover:text-indigo-600">Qué es</a>
+            <a href="#features" class="hover:text-indigo-600">Funciones</a>
+            <a href="#instalar" class="hover:text-indigo-600">Instalación</a>
+            <a href="#descargar" class="rounded-lg bg-indigo-600 px-3 py-1.5 font-medium text-white hover:bg-indigo-700">Descargar</a>
+        </nav>
+    </div>
+</header>
+
+<!-- Hero -->
+<section class="mx-auto max-w-6xl px-6 py-20 text-center">
+    <span class="inline-block rounded-full bg-indigo-50 px-3 py-1 text-sm font-medium text-indigo-700">Framework agéntico + sistema base</span>
+    <h1 class="mx-auto mt-6 max-w-3xl text-4xl font-extrabold tracking-tight text-slate-900 sm:text-5xl">
+        Empezá cualquier sistema de software en minutos, no en semanas
+    </h1>
+    <p class="mx-auto mt-5 max-w-2xl text-lg text-slate-600">
+        nsSkeleton es el esqueleto para iniciar proyectos de software de forma acelerada:
+        una <strong>capa agéntica</strong> (agnóstica a la IA) que define cómo se desarrolla,
+        y un <strong>sistema base ya programado</strong> con todo lo que cualquier sistema necesita.
+    </p>
+    <div class="mt-8 flex flex-wrap items-center justify-center gap-3">
+        <a href="#descargar" class="rounded-xl bg-indigo-600 px-6 py-3 font-semibold text-white shadow-lg shadow-indigo-600/20 hover:bg-indigo-700">⬇️ Descargar v1.9.0</a>
+        <a href="#instalar" class="rounded-xl bg-white px-6 py-3 font-semibold text-slate-700 ring-1 ring-slate-200 hover:bg-slate-50">Guía de instalación</a>
+    </div>
+    <p class="mt-4 text-sm text-slate-400">PHP 8.2 · MySQL · Tailwind + Alpine · Sin dependencias pesadas</p>
+</section>
+
+<!-- Qué es -->
+<section id="que-es" class="border-y border-slate-200 bg-white py-16">
+    <div class="mx-auto max-w-6xl px-6">
+        <h2 class="text-center text-3xl font-bold text-slate-900">¿Para qué sirve?</h2>
+        <p class="mx-auto mt-3 max-w-2xl text-center text-slate-600">
+            Pensado para arrancar cualquier sistema (facturación, depósito/WMS, stock, turnos,
+            restaurante… lo que sea) sin reinventar la base ni la metodología de desarrollo.
+        </p>
+        <div class="mt-10 grid gap-6 md:grid-cols-2">
+            <div class="rounded-2xl bg-slate-50 p-7 ring-1 ring-slate-200">
+                <div class="mb-3 inline-flex h-10 w-10 items-center justify-center rounded-lg bg-indigo-600 text-white">🤖</div>
+                <h3 class="text-lg font-semibold text-slate-900">Capa agéntica (agnóstica a la IA)</h3>
+                <p class="mt-2 text-slate-600">
+                    Reglas, agentes, skills, comandos, plantillas y metodología (sprints,
+                    testing, bug-tracking, logging obligatorio). Markdown neutral: cualquier IA
+                    arranca leyendo <code class="rounded bg-slate-200 px-1 text-sm">AGENTS.md</code>.
+                    Sin carpetas propietarias.
+                </p>
+            </div>
+            <div class="rounded-2xl bg-slate-50 p-7 ring-1 ring-slate-200">
+                <div class="mb-3 inline-flex h-10 w-10 items-center justify-center rounded-lg bg-emerald-600 text-white">🧩</div>
+                <h3 class="text-lg font-semibold text-slate-900">Sistema base ya programado</h3>
+                <p class="mt-2 text-slate-600">
+                    Un backend funcional con lo que todo sistema necesita: login, tareas
+                    programadas, emails, backups, gráficos, archivos y conector de IA. Sobre
+                    PHP con MVC propio + MySQL, listo para construir encima.
+                </p>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Features -->
+<section id="features" class="py-16">
+    <div class="mx-auto max-w-6xl px-6">
+        <h2 class="text-center text-3xl font-bold text-slate-900">Qué trae el sistema base</h2>
+        <div class="mt-10 grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
+            <!-- cada feature -->
+            <div class="rounded-xl bg-white p-5 shadow-sm ring-1 ring-slate-200">
+                <div class="text-2xl">🔐</div>
+                <h3 class="mt-2 font-semibold text-slate-900">Login + perfiles</h3>
+                <p class="mt-1 text-sm text-slate-600">Backend de administración con sesión segura, CSRF y gestión de administradores.</p>
+            </div>
+            <div class="rounded-xl bg-white p-5 shadow-sm ring-1 ring-slate-200">
+                <div class="text-2xl">⏰</div>
+                <h3 class="mt-2 font-semibold text-slate-900">Cronmaster</h3>
+                <p class="mt-1 text-sm text-slate-600">Programador de tareas con expresiones cron, historial y ejecución manual.</p>
+            </div>
+            <div class="rounded-xl bg-white p-5 shadow-sm ring-1 ring-slate-200">
+                <div class="text-2xl">✉️</div>
+                <h3 class="mt-2 font-semibold text-slate-900">Emails</h3>
+                <p class="mt-1 text-sm text-slate-600">Cliente SMTP propio (TLS/SSL), configuración por panel y log de envíos.</p>
+            </div>
+            <div class="rounded-xl bg-white p-5 shadow-sm ring-1 ring-slate-200">
+                <div class="text-2xl">💾</div>
+                <h3 class="mt-2 font-semibold text-slate-900">Backups</h3>
+                <p class="mt-1 text-sm text-slate-600">Copias de base (SQL) y archivos (ZIP), restauración y retención automática.</p>
+            </div>
+            <div class="rounded-xl bg-white p-5 shadow-sm ring-1 ring-slate-200">
+                <div class="text-2xl">📊</div>
+                <h3 class="mt-2 font-semibold text-slate-900">Gráficos + dashboard</h3>
+                <p class="mt-1 text-sm text-slate-600">Barras, torta y líneas con Chart.js, alimentados con datos del sistema.</p>
+            </div>
+            <div class="rounded-xl bg-white p-5 shadow-sm ring-1 ring-slate-200">
+                <div class="text-2xl">📁</div>
+                <h3 class="mt-2 font-semibold text-slate-900">File manager</h3>
+                <p class="mt-1 text-sm text-slate-600">Carpetas/subcarpetas y subida de archivos, con protección anti-traversal.</p>
+            </div>
+            <div class="rounded-xl bg-white p-5 shadow-sm ring-1 ring-slate-200">
+                <div class="text-2xl">🧠</div>
+                <h3 class="mt-2 font-semibold text-slate-900">Conector de IA</h3>
+                <p class="mt-1 text-sm text-slate-600">OpenAI y Deepseek: credenciales configurables y prueba de chat integrada.</p>
+            </div>
+            <div class="rounded-xl bg-white p-5 shadow-sm ring-1 ring-slate-200">
+                <div class="text-2xl">🧱</div>
+                <h3 class="mt-2 font-semibold text-slate-900">Núcleo MVC</h3>
+                <p class="mt-1 text-sm text-slate-600">Router, PDO, vistas, auth y sesiones en PHP puro, sin dependencias.</p>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Instalación -->
+<section id="instalar" class="border-y border-slate-200 bg-white py-16">
+    <div class="mx-auto max-w-3xl px-6">
+        <h2 class="text-center text-3xl font-bold text-slate-900">Guía de instalación</h2>
+        <ol class="mt-10 space-y-6">
+            <li class="flex gap-4">
+                <span class="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-indigo-600 text-sm font-bold text-white">1</span>
+                <div>
+                    <h3 class="font-semibold text-slate-900">Descomprimir y configurar el entorno</h3>
+                    <p class="mt-1 text-sm text-slate-600">Copiá <code class="rounded bg-slate-100 px-1">.env.example</code> a <code class="rounded bg-slate-100 px-1">.env</code> y completá los datos de la base de datos (<code class="rounded bg-slate-100 px-1">DB_*</code>).</p>
+                </div>
+            </li>
+            <li class="flex gap-4">
+                <span class="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-indigo-600 text-sm font-bold text-white">2</span>
+                <div>
+                    <h3 class="font-semibold text-slate-900">Crear la base y el admin</h3>
+                    <pre class="mt-2 overflow-auto rounded-lg bg-slate-900 p-3 text-xs text-emerald-300">php system/database/migrate.php
+php system/database/seed.php</pre>
+                    <p class="mt-1 text-sm text-slate-600">Admin inicial: <strong>admin@nsskeleton.local</strong> / <strong>admin1234</strong>.</p>
+                </div>
+            </li>
+            <li class="flex gap-4">
+                <span class="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-indigo-600 text-sm font-bold text-white">3</span>
+                <div>
+                    <h3 class="font-semibold text-slate-900">Levantar la aplicación</h3>
+                    <pre class="mt-2 overflow-auto rounded-lg bg-slate-900 p-3 text-xs text-emerald-300">php -S 127.0.0.1:8080 -t system/public system/public/index.php</pre>
+                    <p class="mt-1 text-sm text-slate-600">Entrá a <code class="rounded bg-slate-100 px-1">/admin/login</code>. (O apuntá Apache a <code class="rounded bg-slate-100 px-1">system/public/</code>.)</p>
+                </div>
+            </li>
+        </ol>
+        <p class="mt-8 text-center text-sm text-slate-500">Guía completa en <code class="rounded bg-slate-100 px-1">docs/INSTALL.md</code>.</p>
+    </div>
+</section>
+
+<!-- Descargar -->
+<section id="descargar" class="py-20">
+    <div class="mx-auto max-w-3xl px-6">
+        <div class="rounded-3xl bg-gradient-to-br from-indigo-600 to-violet-600 p-10 text-center text-white shadow-xl">
+            <h2 class="text-3xl font-bold">Descargá nsSkeleton 1.9.0</h2>
+            <p class="mx-auto mt-3 max-w-xl text-indigo-100">Paquete completo: capa agéntica + sistema base, listo para configurar y empezar a desarrollar.</p>
+            <a href="downloads/nsSkeleton-1.9.0.zip" download
+               class="mt-7 inline-block rounded-xl bg-white px-8 py-3 font-semibold text-indigo-700 shadow-lg hover:bg-indigo-50">
+                ⬇️ Descargar ZIP (v1.9.0)
+            </a>
+            <div class="mx-auto mt-8 max-w-md rounded-xl bg-white/10 p-4 text-left">
+                <p class="mb-1 text-xs font-semibold uppercase tracking-wide text-indigo-200">O cloná el repositorio</p>
+                <pre class="overflow-auto text-sm text-indigo-50">git clone &lt;tu-repo&gt;/nsSkeleton.git</pre>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Footer -->
+<footer class="border-t border-slate-200 bg-white py-8">
+    <div class="mx-auto flex max-w-6xl flex-col items-center justify-between gap-2 px-6 text-sm text-slate-500 sm:flex-row">
+        <span>nsSkeleton · v1.9.0 · Framework agéntico + sistema base</span>
+        <span>Hecho para acelerar el desarrollo de software</span>
+    </div>
+</footer>
+
+</body>
+</html>

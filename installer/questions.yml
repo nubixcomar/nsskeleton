@@ -1,0 +1,129 @@
+# ============================================================================
+# nsSkeleton — Instalador (Q&A)
+# La IA lee este archivo y le hace estas preguntas al humano al iniciar un
+# proyecto nuevo. Con las respuestas: completa docs/, ajusta el adapter y ejecuta
+# el target de IA elegido (installer/targets/{ia}/) para materializar agentic/.
+# ============================================================================
+
+meta:
+  name: nsSkeleton installer
+  version: 0.1.0
+  description: Configura un proyecto nuevo a partir de nsSkeleton.
+
+groups:
+
+  - id: project
+    title: Datos del proyecto
+    questions:
+      - key: project_name
+        prompt: "¿Cómo se llama el proyecto?"
+        type: text
+        required: true
+      - key: project_summary
+        prompt: "Describí en 1-2 líneas qué hace el sistema."
+        type: text
+        required: true
+      - key: project_versioning
+        prompt: "¿Qué esquema de versionado usás?"
+        type: choice
+        options: [semantic, date-based, custom]
+        default: semantic
+
+  - id: stack
+    title: Stack tecnológico
+    questions:
+      - key: language
+        prompt: "¿Lenguaje/runtime del backend?"
+        type: choice
+        options: [php-mvc, laravel, node-express, other]
+        default: php-mvc
+      - key: database
+        prompt: "¿Base de datos?"
+        type: choice
+        options: [mysql, mariadb, postgres, sqlite, other]
+        default: mysql
+      - key: frontend
+        prompt: "¿Stack de CSS/JS del frontend?"
+        type: choice
+        options: [tailwind-alpine, bootstrap, vue-inertia, react, other]
+        default: tailwind-alpine
+      - key: adapter
+        prompt: "Adapter de stack a usar (debe existir en agentic/adapters/)."
+        type: text
+        default: php-mvc
+
+  - id: db
+    title: Base de datos (credenciales)
+    questions:
+      - key: app_url
+        prompt: "URL base de la app."
+        type: text
+        default: http://localhost
+      - key: db_host
+        prompt: "Host de la base de datos."
+        type: text
+        default: 127.0.0.1
+      - key: db_port
+        prompt: "Puerto de la base de datos."
+        type: text
+        default: "3306"
+      - key: db_name
+        prompt: "Nombre de la base de datos."
+        type: text
+        required: true
+      - key: db_user
+        prompt: "Usuario de la base de datos."
+        type: text
+        default: root
+      - key: db_pass
+        prompt: "Contraseña de la base de datos (vacío si no tiene)."
+        type: text
+        required: false
+
+  - id: ai
+    title: IA / herramienta agéntica
+    questions:
+      - key: ai_target
+        prompt: "¿Con qué IA/herramienta vas a trabajar la capa agéntica?"
+        type: choice
+        options: [claude-code, openai, none]
+        default: claude-code
+        note: >
+          La capa agéntica se consume desde agentic/ vía AGENTS.md; no se genera
+          ninguna carpeta propietaria. installer/targets/{ia}/ solo documenta, de
+          forma opt-in, cómo apuntar esa IA a AGENTS.md si hiciera falta.
+      - key: ai_provider_runtime
+        prompt: "¿Proveedor de IA para el conector de la app (en runtime)?"
+        type: choice
+        options: [openai, deepseek, none]
+        default: none
+
+  - id: infra
+    title: Infraestructura y deploy
+    questions:
+      - key: repo_url
+        prompt: "URL del repositorio Git (opcional)."
+        type: text
+        required: false
+      - key: deploy_method
+        prompt: "¿Cómo se deploya?"
+        type: choice
+        options: [ftp, git, manual, none]
+        default: ftp
+      - key: install_system_base
+        prompt: "¿Instalar el sistema base ya programado (login admin, cron, mail, backup, files, IA)?"
+        type: boolean
+        default: true
+
+# ----------------------------------------------------------------------------
+# Acciones que ejecuta la IA con las respuestas (orden):
+# ----------------------------------------------------------------------------
+actions:
+  - completar: docs/stack.md          # con stack + IA elegidos
+  - completar: docs/brief.md          # con project_name + project_summary
+  - copiar: .env.example -> .env      # y precargar valores conocidos
+  - escribir: app-agentic/rules/app-rules.md  # reglas del proyecto (NO se edita el core)
+  - arranque_ia: AGENTS.md            # la IA arranca acá; NO se genera nada propietario
+  - opcional_opt_in: installer/targets/{ai_target}/materialize.md  # solo si se wirea la IA
+  - si install_system_base: preparar system/ + primera migración
+  - registrar: logs/walkthrough/<fecha>_installer_setup.md

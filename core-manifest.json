@@ -1,0 +1,52 @@
+{
+  "core_version": "1.15.0",
+  "description": "Reglas de propiedad del core de nsSkeleton. Un archivo es 'core' (lo pisa el actualizador) si matchea core_paths, NO matchea app_paths y NO matchea exclude. Todo lo demas es de la app y el actualizador nunca lo toca. El snapshot concreto con checksums vive en core-lock.json (lo genera system/console/core-manifest.php).",
+  "match_rules": {
+    "ends_with_slash": "prefijo de directorio (recursivo)",
+    "starts_with_*.": "sufijo de extension (ej *.zip)",
+    "otherwise": "ruta exacta"
+  },
+  "core_paths": [
+    "AGENTS.md",
+    "README.md",
+    "VERSION",
+    "core-manifest.json",
+    ".env.example",
+    ".gitignore",
+    ".htaccess",
+    "agentic/",
+    "system/",
+    "docs/",
+    "tests/",
+    "installer/",
+    "resources/",
+    "tools/"
+  ],
+  "app_paths": [
+    "app-agentic/",
+    "docs/brief.md",
+    "docs/roadmap.md",
+    "docs/modules/"
+  ],
+  "exclude": [
+    ".env",
+    ".git/",
+    ".claude/",
+    "secrets/",
+    "node_modules/",
+    "vendor/",
+    "landing/",
+    "logs/",
+    "system/storage/",
+    "tools/bin/",
+    "core-lock.json",
+    "*.zip"
+  ],
+  "notes": [
+    "El showcase Clientes (modelo/controller/vistas/ruta/migracion) esta en app_paths: es contenido de ejemplo que el proyecto reemplaza; un update de core NO lo toca.",
+    "system/storage/** es runtime/datos: nunca es core.",
+    "Las credenciales (.env, secrets/) jamas son core.",
+    "Puntos de extension (Fase 3): los READMEs de config/overrides/, app/Views/overrides/ y database/migrations/app/ SON core (se envian); los archivos que la app cree ahi quedan 'untracked' (no estan en el lock) y el actualizador NO los toca. Lo mismo aplica a config/routes.app.php y a los modulos generados (Controllers/Models/Views/config/routes/*).",
+    "Las migraciones de la app van en database/migrations/app/ (separadas de las del core); el update corre Migrator::migrateCore()."
+  ]
+}

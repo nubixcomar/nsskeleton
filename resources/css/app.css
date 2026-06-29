@@ -1,0 +1,5 @@
+@import "tailwindcss";
+
+/* Archivos a escanear para generar solo las clases usadas. */
+@source "../../system/app/Views/**/*.php";
+@source "../../landing/**/*.html";
