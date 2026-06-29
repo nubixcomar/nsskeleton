@@ -4,3 +4,4 @@
 2026-06-28 21:30 | claude-opus-4-8 | Fase 6 publicacion del core: build-core-package.php + /release integrado + updater --url (v1.14.0) | walkthrough/2026-06-28_2130_core-updater_fase6-publicacion.md
 2026-06-28 22:15 | claude-opus-4-8 | Fase 5 capa asistida: comando /actualizar-core + skill/agente core-updater + docs/CORE-UPDATE.md (v1.15.0) — roadmap actualizacion de core COMPLETO | walkthrough/2026-06-28_2215_core-updater_fase5-asistida.md
 2026-06-28 22:40 | claude-opus-4-8 | roadmap del core: mecanismo de actualizacion (v1.11-1.15) marcado COMPLETO + backlog de mejoras (3-way merge, latest.json, UI admin) en docs/roadmap.md
+2026-06-29 09:30 | claude-opus-4-8 | docs: manual de creacion de proyecto nuevo (INSTALL.md Paso 0) + link desde empezar.md (v1.15.1)

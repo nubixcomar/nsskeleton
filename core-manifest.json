@@ -1,5 +1,5 @@
 {
-  "core_version": "1.15.0",
+  "core_version": "1.15.1",
   "description": "Reglas de propiedad del core de nsSkeleton. Un archivo es 'core' (lo pisa el actualizador) si matchea core_paths, NO matchea app_paths y NO matchea exclude. Todo lo demas es de la app y el actualizador nunca lo toca. El snapshot concreto con checksums vive en core-lock.json (lo genera system/console/core-manifest.php).",
   "match_rules": {
     "ends_with_slash": "prefijo de directorio (recursivo)",

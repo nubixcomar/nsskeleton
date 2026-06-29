@@ -2,6 +2,56 @@
 
 Guía rápida para poner en marcha un proyecto basado en nsSkeleton.
 
+## 0. Crear un proyecto nuevo desde el skeleton (en esta máquina)
+
+> **No copies y pegues la carpeta del skeleton.** Te arrastra cosas que no van en un proyecto
+> nuevo: el `.git` apuntando al repo del skeleton (tus commits irían ahí), `landing/downloads/*.zip`,
+> `tools/bin/` (binario de ~108 MB), `.env` con credenciales del skeleton y los logs/VERSION del core.
+
+**Patrón recomendado:** mantené `c:\xampp\htdocs\skeleton` como **"master"** (sincronizado con el
+repo; es la fuente del core y la que genera paquetes). Cada proyecto vive en **su propia carpeta**,
+con copia limpia y git propio.
+
+**1) Copia limpia** — elegí una:
+```bash
+# Opción A — clonar y cortar el vínculo con el repo del skeleton:
+git clone https://github.com/nubixcomar/nsskeleton.git c:/xampp/htdocs/miproyecto
+cd c:/xampp/htdocs/miproyecto && rm -rf .git
+
+# Opción B — desde el paquete oficial (ya excluye .git, .env, tools/bin, downloads, runtime):
+#   en el master:  php landing/build-download.php   → landing/downloads/nsSkeleton-<version>.zip
+#   descomprimir ese zip en  c:/xampp/htdocs/miproyecto
+```
+
+**2) Instalar** (configura el proyecto; NO se edita el core):
+```bash
+cd c:/xampp/htdocs/miproyecto
+/instalar     # con tu IA: Q&A que genera .env, app-agentic/rules/app-rules.md y docs/brief.md
+#   (parte mecánica equivalente:  php system/console/install.php --answers=respuestas.json)
+```
+
+**3) Base de datos:**
+```bash
+php system/database/migrate.php        # tablas del core
+php system/database/seed-demo.php      # opcional: datos demo
+```
+
+**4) Git propio del proyecto** (remoto separado del skeleton):
+```bash
+git init && git add -A && git commit -m "init miproyecto desde nsSkeleton"
+# git remote add origin <tu-repo-nuevo> && git push -u origin main
+```
+
+**5) Desarrollá SIEMPRE en lo "tuyo"** (lo que el actualizador de core nunca pisa): módulos con
+`/nuevo-modulo`, overrides (`config/overrides/`, `routes.app.php`, `app/Views/overrides/`,
+`database/migrations/app/`) y tus reglas/agentes en `app-agentic/`. Cuando salga una versión nueva
+del core: `/actualizar-core <zip|url>` y tu trabajo queda intacto (ver [`CORE-UPDATE.md`](CORE-UPDATE.md)).
+
+> Luego seguí con los pasos 1–6 de abajo (entorno, DB, levantar) y con [`empezar.md`](empezar.md)
+> para el ciclo de desarrollo (brief → sprints → módulos → release).
+
+---
+
 ## Requisitos
 - PHP 8.2+ (XAMPP lo trae en `C:\xampp\php\php.exe`).
 - MySQL / MariaDB (módulo MySQL de XAMPP).

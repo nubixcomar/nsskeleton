@@ -6,7 +6,9 @@ tu propio sistema (facturación, WMS, stock, turnos, lo que sea).
 ---
 
 ## Paso 0 — Instalar (una sola vez)
-1. Descargá/cloná nsSkeleton como base de tu proyecto.
+1. Creá una **copia limpia** del skeleton en su propia carpeta (no copies/pegues la carpeta
+   del master). Cómo hacerlo bien (clonar y cortar git, o desde el paquete) está en
+   [`INSTALL.md` §0](INSTALL.md).
 2. Configurá el entorno y la base:
    ```
    copy .env.example .env      (y completá DB_*)

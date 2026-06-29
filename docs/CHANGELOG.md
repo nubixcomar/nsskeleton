@@ -3,6 +3,11 @@
 Todas las versiones notables de nsSkeleton. Formato basado en versionado semántico.
 Lo mantiene el comando `/release` (ver `agentic/commands/release.md`).
 
+## [1.15.1] — 2026-06-29
+- **Docs**: `INSTALL.md` ahora documenta **cómo crear un proyecto nuevo** desde el skeleton
+  (Paso 0): copia limpia (clonar+cortar git, o paquete), master vs proyecto, git propio y
+  desarrollo en lo "tuyo" (overrides/`app-agentic/`) + update de core. `empezar.md` enlaza ahí.
+
 ## [1.15.0] — 2026-06-28
 Actualización de core — Fase 5 (capa asistida). **Cierra el roadmap completo** (Fases 1–6).
 - **Comando `/actualizar-core <dir|zip|url>`** + agente y skill **`core-updater`**: flujo
