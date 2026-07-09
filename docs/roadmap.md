@@ -163,6 +163,56 @@
 
 ---
 
+## v1.16 — Camino dorado de producción (P0) · ✅ COMPLETA (2026-07-09)
+> Deriva de la **auditoría de nsCheckout** (deploy real nginx + integración MP embebido).
+> Plan detallado: [`agentic/knowledge/skeleton/plan-mejoras-post-nscheckout.md`](../agentic/knowledge/skeleton/plan-mejoras-post-nscheckout.md).
+
+| # | Feature                                                    | Estado | Notas |
+|---|------------------------------------------------------------|--------|-------|
+| 1 | **CSP configurable** por env/config + merge por-respuesta (1.1) | ✅ | `config/security.php`, `Security::csp()`, `Response::withCsp/hasHeader`, `App` merge; 9 tests |
+| 2 | **Presets de CSP** por integración (mercadopago/stripe/recaptcha) (1.1) | ✅ | `preset_definitions` + `CSP_PRESETS` env; incluido en los 9 tests |
+| 3 | **Router: override real** app→core (last-wins) + doc (1.2) | ✅     | `Router::add` reemplaza por method+path; app al final de routes.php; 4 tests |
+| 4 | **Templates nginx + Apache** + docroot=`system/public` (1.3) | ✅   | `docs/deploy/` (nginx/apache/README camino dorado) |
+| 5 | **`APP_BASE_PATH`** explícito por env (1.3)                | ✅     | `Url::base()` override + `Request` lo reutiliza; 5 tests |
+| 6 | **`session.save_path`** → `storage/sessions/` (1.4)       | ✅     | `Session::configureSavePath`; `SESSION_PATH`; gitignore corregido; 3 tests |
+| 7 | **`deploy:doctor`** (docroot/rewrite/php/permisos) (1.3)  | ✅     | `DeployDoctor` + `deploy.php doctor`; 4 tests |
+
+## v1.17 — Robustez, seguridad y frontera core/app (P1) · ✅ COMPLETA (2026-07-09)
+| # | Feature | Estado | Notas |
+|---|---------|--------|-------|
+| 1 | Frontera código-app fuera de core-lock (1.6) | ✅ | autoloader multi-dir + `app/` raíz + README; 0 drift; 4 tests |
+| 2 | Paquete de deploy con allowlist (1.5) | ✅ | `config/deploy.php` + `--production`; 532→251 archivos; 5 tests |
+| 3 | Aislamiento de tests (rollback/DB test) (1.7) | ✅ | `Database::transaction` + helper `itDb()`; 4 tests + doc |
+| 4 | Test de nombre por `APP_NAME` (1.7) | ✅ | unit+feature leen `APP_NAME`; rename no rompe |
+| 5 | Error-log server-side siempre-on + rotación (1.8) | ✅ | `Core\ErrorLog` (traza+rotación+tail); `App` lo usa; 4 tests |
+| 6 | Visor de logs en /admin (1.8) | ✅ | `/admin/logs` + `LogViewerController` + permiso `logs.view`; 5 tests |
+| 7 | Auth multi-guard / login por rol (1.9) | ✅ | `config/auth.php` + `Core\Guard` (sesiones aisladas); `Auth` fachada retrocompat; 7 tests |
+
+## v1.18 — DRY, DX y comodidad (P2) · ✅ COMPLETA (2026-07-09)
+| # | Feature | Estado | Notas |
+|---|---------|--------|-------|
+| 1 | `Core\Http` client (1.10) | ✅ | `Http` con transporte inyectable + `get`/`request`/retries; 7 tests |
+| 2 | `Core\Webhooks\SignatureVerifier` entrantes (1.10) | ✅ | HMAC simple + timestamped (Stripe/MP) anti-replay; 6 tests |
+| 3 | `db:doctor` | ✅ | `DbDoctor` + `console/db.php`; detecta caching_sha2_password; 4 tests |
+| 4 | Migración remota protegida por token | ✅ | `/_migrate` token-gated (404 por defecto); `RemoteMigrate`; 4 tests |
+| 5 | `git init` en el installer | ✅ | `Installer::gitInit` + `install.php --git` + recordatorio; 4 tests |
+
+## Extracciones de nsCheckout (sección 2 del informe) · ✅ RESUELTAS (2026-07-09)
+> Piezas construidas en nsCheckout evaluadas para el core. Detalle en el plan.
+
+| Pieza | Resolución |
+|-------|-----------|
+| `Money` (multi-moneda) | ✅ extraída → `Core\Money` (8 tests) |
+| `Hmac` (firma payloads) | ✅ extraída → `Core\Security\Hmac`; `SignatureVerifier` convergió (6 tests) |
+| `DomainStatus` (DNS+TLS) | ✅ extraída → `App\Services\DomainStatus` (5 tests) |
+| Exportadores CSV/Excel/PDF | ✅ ya en core (`App\Services\Exporter`) |
+| Helper CSRF JSON/fetch | ✅ ya en core (`Session::csrf`/`verifyCsrf`) |
+| `payments` (PaymentGateway) | ⏭️ plantilla `/nuevo-modulo` (app-específico); core ya aporta Http/CSP/Money/webhooks |
+| `integrations` (BaseCatalogConnector) | ⏭️ ya existe framework ecommerce (`Services/Ecommerce/`, v1.10) |
+| `marketing/consent` (GTM/GA4/Pixel) | ⏭️ plantilla (front/marketing, no core) |
+
+---
+
 ## Versionado
 nsSkeleton usa **versionado semántico** (`MAJOR.MINOR.PATCH`) para el framework.
 Los proyectos derivados pueden elegir su propio esquema en el instalador.

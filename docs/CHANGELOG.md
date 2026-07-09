@@ -3,6 +3,47 @@
 Todas las versiones notables de nsSkeleton. Formato basado en versionado semántico.
 Lo mantiene el comando `/release` (ver `agentic/commands/release.md`).
 
+## [1.18.0] — 2026-07-09
+Mejoras del core derivadas de la **auditoría de nsCheckout** (app derivada: deploy real a
+nginx + Mercado Pago embebido). 80 tests nuevos, suite 269→367 verde. Informe y plan en
+`agentic/knowledge/skeleton/`.
+
+### v1.18 — DRY, DX y comodidad (P2)
+- **`App\Services\Http`**: transporte inyectable (`setTransport`), `get()`, `request()` genérico
+  con **retries** (5xx/conexión, backoff); preserva postJson/postRaw/postStream.
+- **`Core\Webhooks\SignatureVerifier`**: verificación de webhooks **entrantes** (HMAC simple +
+  timestamped Stripe/MP con anti-replay, constant-time).
+- **`db:doctor`** (`DbDoctor` + `console/db.php`): conexión, versión, extensiones, detección de
+  `caching_sha2_password` de MySQL 8, migraciones.
+- **Migración remota por token**: endpoint `/_migrate` (404 salvo `MIGRATE_TOKEN`).
+- **`git init` en el installer** (`install.php --git` + recordatorio).
+
+### Extracciones genéricas de nsCheckout
+- **`Core\Money`** (multi-moneda, aritmética en centavos), **`Core\Security\Hmac`** (firma de
+  payloads; `SignatureVerifier` converge en ella), **`App\Services\DomainStatus`** (DNS + TLS).
+
+## [1.17.0] — 2026-07-09
+### Robustez, seguridad y frontera core/app (P1)
+- **Frontera código-app**: `app/` en la raíz (namespace `App\`, autoloader multi-dir), fuera de
+  `core-lock` → el código de proyecto no genera drift.
+- **Paquete de deploy con allowlist** (`config/deploy.php`, `--production`): no sube fuente/tests/
+  docs/agentic (532→251 archivos).
+- **Aislamiento de tests**: `Database::transaction` + helper `itDb()` (rollback siempre).
+- Test de nombre lee `APP_NAME` (renombrar la app no rompe la suite).
+- **`Core\ErrorLog`**: error-log server-side siempre-on (traza + rotación) + visor `/admin/logs`.
+- **Auth multi-guard**: `config/auth.php` + `Core\Guard` (guards admin/brand/customer, sesiones
+  aisladas); `Core\Auth` = fachada del guard default (retrocompat 100%).
+
+## [1.16.0] — 2026-07-09
+### Camino dorado de producción (P0)
+- **CSP configurable** por env/config + **presets** (mercadopago/stripe/recaptcha) + **merge de
+  headers por-respuesta** (`Response::withCsp`/`hasHeader`; `App` no pisa lo del controller).
+- **Router: override real** app→core (last-wins); rutas de app al final de `routes.php`.
+- **Templates de deploy** `docs/deploy/` (nginx + Apache, docroot=`system/public`) + `deploy:doctor`.
+- **`APP_BASE_PATH`** (fallback robusto para subdirectorios/alias).
+- **`session.save_path`** → `system/storage/sessions/` (escribible en pools aislados) +
+  corrección de rutas de `storage/` en `.gitignore`.
+
 ## [1.15.1] — 2026-06-29
 - **Docs**: `INSTALL.md` ahora documenta **cómo crear un proyecto nuevo** desde el skeleton
   (Paso 0): copia limpia (clonar+cortar git, o paquete), master vs proyecto, git propio y

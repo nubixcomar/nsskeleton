@@ -47,6 +47,7 @@ return [
             'items' => [
                 ['/admin/backup', 'Backups',       'backup.manage', 'archive'],
                 ['/admin/health', 'Estado',        'dashboard.view', 'heart'],
+                ['/admin/logs',   'Logs',          'logs.view',     'list'],
                 ['/admin/cron',   'Tareas / Cron', 'cron.manage',   'clock'],
                 ['/admin/jobs',   'Colas / Jobs',  'cron.manage',   'queue'],
             ],

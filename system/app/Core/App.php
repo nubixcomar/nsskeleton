@@ -41,8 +41,12 @@ final class App
             $response = $this->handleException($e, $debug);
         }
 
+        // Merge (no overwrite): si el controller ya seteó una cabecera de seguridad
+        // (p. ej. Response::withCsp()), esa gana → override por-respuesta.
         foreach (Security::headers(Security::isHttps()) as $name => $value) {
-            $response->header($name, $value);
+            if (!$response->hasHeader($name)) {
+                $response->header($name, $value);
+            }
         }
 
         $response->send();
@@ -50,19 +54,9 @@ final class App
 
     private function handleException(Throwable $e, bool $debug): Response
     {
-        // Log mínimo a storage/logs.
-        $logDir = BASE_PATH . '/storage/logs';
-        if (is_dir($logDir) || @mkdir($logDir, 0775, true)) {
-            $entry = sprintf(
-                "[%s] %s: %s in %s:%d\n",
-                date('Y-m-d H:i:s'),
-                $e::class,
-                $e->getMessage(),
-                $e->getFile(),
-                $e->getLine()
-            );
-            @file_put_contents($logDir . '/app.log', $entry, FILE_APPEND);
-        }
+        // Log server-side SIEMPRE (con traza), independiente de APP_DEBUG (hallazgo 1.8):
+        // así se diagnostica un 500 en prod sin tener que prender debug.
+        ErrorLog::exception($e);
 
         $detail = $debug
             ? $e::class . ': ' . $e->getMessage() . "\n" . $e->getFile() . ':' . $e->getLine()

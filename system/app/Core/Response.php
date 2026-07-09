@@ -50,10 +50,44 @@ final class Response
         return $this;
     }
 
+    /** ¿La respuesta ya tiene seteada esta cabecera? (case-insensitive) */
+    public function hasHeader(string $name): bool
+    {
+        $lower = strtolower($name);
+        foreach (array_keys($this->headers) as $k) {
+            if (strtolower((string) $k) === $lower) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    /**
+     * Overridea la Content-Security-Policy de ESTA respuesta. `Core\App` respeta
+     * la cabecera ya seteada (merge, no overwrite) → override por-ruta desde el controller.
+     */
+    public function withCsp(string $policy): self
+    {
+        $this->headers['Content-Security-Policy'] = $policy;
+        return $this;
+    }
+
     public function status(int $status): self
     {
         $this->status = $status;
         return $this;
+    }
+
+    /** Código de estado actual (getter, para tests/introspección). */
+    public function statusCode(): int
+    {
+        return $this->status;
+    }
+
+    /** Cuerpo de la respuesta (getter, para tests/introspección). */
+    public function body(): string
+    {
+        return $this->content;
     }
 
     public function send(): void

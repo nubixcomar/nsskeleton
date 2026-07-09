@@ -20,6 +20,7 @@ return [
         'audit.view'      => 'Ver auditoría',
         'api.manage'      => 'Gestionar API',
         'modules.manage'  => 'Gestionar módulos',
+        'logs.view'       => 'Ver logs de errores',
     ],
     'roles' => [
         'superadmin' => ['*'],
@@ -35,6 +36,7 @@ return [
             'audit.view',
             'api.manage',
             'modules.manage',
+            'logs.view',
         ],
         'editor' => [
             'dashboard.view',

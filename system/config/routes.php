@@ -19,6 +19,10 @@ return static function (Router $router): void {
     // Health-check (útil para deploy/monitoreo). Resumen público.
     $router->get('/health', static fn (): Response => Response::json(\App\Services\Health::summary()));
 
+    // Migración remota protegida por token (deshabilitada salvo MIGRATE_TOKEN en .env).
+    $router->get('/_migrate', 'MigrateController@handle');
+    $router->post('/_migrate', 'MigrateController@handle');
+
     // Descarga pública de archivos compartidos por token (sin login).
     $router->get('/a/{token}', 'PublicFileController@download');
 
@@ -58,6 +62,7 @@ return static function (Router $router): void {
 
     // Estado del sistema (healthcheck + métricas + flags).
     $router->get('/admin/health', 'Admin\HealthController@index');
+    $router->get('/admin/logs', 'Admin\LogViewerController@index');
 
     // Búsqueda global a través de los módulos.
     $router->get('/admin/search', 'Admin\SearchController@index');
@@ -159,17 +164,6 @@ return static function (Router $router): void {
         }
     }
 
-    // Rutas de la APP (punto de extensión, no se pisa al actualizar el core).
-    // Definí rutas propias en config/routes.app.php devolviendo `fn(Router $router) => ...`.
-    // Se cargan después de las del core: si repetís una ruta, gana la de la app.
-    $appRoutes = BASE_PATH . '/config/routes.app.php';
-    if (is_file($appRoutes)) {
-        $register = require $appRoutes;
-        if (is_callable($register)) {
-            $register($router);
-        }
-    }
-
     // Backups (base de datos + archivos).
     $router->get('/admin/backup', 'Admin\BackupController@index');
     $router->post('/admin/backup/db', 'Admin\BackupController@createDb');
@@ -178,4 +172,17 @@ return static function (Router $router): void {
     $router->get('/admin/backup/download/{name}', 'Admin\BackupController@download');
     $router->post('/admin/backup/restore', 'Admin\BackupController@restore');
     $router->post('/admin/backup/delete', 'Admin\BackupController@destroy');
+
+    // --- Rutas de la APP (punto de extensión, no se pisa al actualizar el core) ---
+    // Definí rutas propias en config/routes.app.php devolviendo `fn(Router $router) => ...`.
+    // Se cargan AL FINAL, después de TODAS las del core: si repetís un método+ruta, la de la
+    // app REEMPLAZA a la del core (override last-wins real — ver Core\Router::add). Así podés
+    // pisar incluso la home `/` desde la app. (Corrige el hallazgo 1.2 de la auditoría.)
+    $appRoutes = BASE_PATH . '/config/routes.app.php';
+    if (is_file($appRoutes)) {
+        $register = require $appRoutes;
+        if (is_callable($register)) {
+            $register($router);
+        }
+    }
 };

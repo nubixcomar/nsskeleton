@@ -33,10 +33,11 @@ final class Request
         $uri = parse_url($_SERVER['REQUEST_URI'] ?? '/', PHP_URL_PATH) ?: '/';
         $uri = rawurldecode($uri);
 
-        // Normaliza el path quitando el subdirectorio donde vive index.php
-        // (ej. /skeleton/system/public) para que las rutas sean relativas.
-        $scriptDir = str_replace('\\', '/', dirname($_SERVER['SCRIPT_NAME'] ?? ''));
-        if ($scriptDir !== '/' && $scriptDir !== '' && str_starts_with($uri, $scriptDir)) {
+        // Normaliza el path quitando el subdirectorio base (ej. /skeleton/system/public)
+        // para que las rutas sean relativas. El base honra APP_BASE_PATH (ver Core\Url::base),
+        // fallback robusto cuando SCRIPT_NAME se reporta mal (nginx alias — hallazgo 1.3).
+        $scriptDir = Url::base();
+        if ($scriptDir !== '' && str_starts_with($uri, $scriptDir)) {
             $uri = substr($uri, strlen($scriptDir));
         }
         $path = '/' . trim($uri, '/');

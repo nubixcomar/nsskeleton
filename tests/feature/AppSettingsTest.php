@@ -15,12 +15,14 @@ it('refleja el nombre guardado en settings', function () {
         return 'skip';
     }
 
+    $original = AppSettings::name();
+
     Settings::set('app.name', 'Mi Empresa SA', 'app');
     assertEquals('Mi Empresa SA', AppSettings::name());
 
-    // Restaurar vía Settings (invalida la caché correctamente).
-    Settings::set('app.name', 'nsSkeleton', 'app');
-    assertEquals('nsSkeleton', AppSettings::name());
+    // Restaurar al valor original capturado (no hardcodear el nombre — hallazgo 1.7).
+    Settings::set('app.name', $original, 'app');
+    assertEquals($original, AppSettings::name());
     Database::run('DELETE FROM settings WHERE `key` = ?', ['app.name']);
 });
 

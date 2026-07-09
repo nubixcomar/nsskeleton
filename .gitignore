@@ -21,13 +21,15 @@
 /landing/downloads/*
 !/landing/downloads/.gitkeep
 
-# --- Almacenamiento y temporales ---
-/storage/backups/*
-!/storage/backups/.gitkeep
-/storage/cache/*
-!/storage/cache/.gitkeep
-/storage/uploads/*
-!/storage/uploads/.gitkeep
+# --- Almacenamiento y temporales (runtime bajo system/storage/) ---
+/system/storage/backups/*
+!/system/storage/backups/.gitkeep
+/system/storage/cache/*
+!/system/storage/cache/.gitkeep
+/system/storage/uploads/*
+!/system/storage/uploads/.gitkeep
+/system/storage/sessions/*
+!/system/storage/sessions/.gitkeep
 *.log.tmp
 
 # --- Logs agénticos: se versionan walkthroughs e índices, no ruido temporal ---

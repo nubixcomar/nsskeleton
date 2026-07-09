@@ -83,4 +83,45 @@ final class Installer
             ($answers['install_system_base'] ?? true) ? 'Migrar + seed del sistema base' : 'Omitir sistema base',
         ];
     }
+
+    /** ¿El proyecto ya es un repositorio git? */
+    public static function isGitRepo(string $projectPath): bool
+    {
+        return is_dir($projectPath . '/.git');
+    }
+
+    /** Comandos para inicializar git con un commit inicial. @return list<string> */
+    public static function gitInitCommands(): array
+    {
+        return [
+            'git init',
+            'git add -A',
+            'git commit -m "chore: commit inicial (proyecto nsSkeleton)"',
+        ];
+    }
+
+    /**
+     * Inicializa git (init + commit inicial) si el proyecto no es aún un repo. Así el proyecto
+     * arranca con historial/rollback antes de tocar producción (hallazgo menor de la auditoría).
+     * El $runner es inyectable para testear sin ejecutar git.
+     *
+     * @param (callable(string):int)|null $runner
+     * @return array{ok:bool, done:bool, message:string, commands:list<string>}
+     */
+    public static function gitInit(string $projectPath, ?callable $runner = null): array
+    {
+        if (self::isGitRepo($projectPath)) {
+            return ['ok' => true, 'done' => false, 'message' => 'Ya es un repositorio git.', 'commands' => []];
+        }
+        $runner ??= static function (string $cmd): int {
+            $code = 0;
+            passthru($cmd, $code);
+            return $code;
+        };
+        $commands = self::gitInitCommands();
+        foreach ($commands as $cmd) {
+            $runner($cmd);
+        }
+        return ['ok' => true, 'done' => true, 'message' => 'Repositorio git inicializado con commit inicial.', 'commands' => $commands];
+    }
 }

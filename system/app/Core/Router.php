@@ -14,6 +14,9 @@ final class Router
     /** @var list<array{method:string,regex:string,handler:mixed,params:list<string>}> */
     private array $routes = [];
 
+    /** Índice method+path → posición en $routes, para override (last-wins). */
+    private array $index = [];
+
     public function get(string $path, mixed $handler): void
     {
         $this->add('GET', $path, $handler);
@@ -39,8 +42,16 @@ final class Router
         $this->add('DELETE', $path, $handler);
     }
 
+    /**
+     * Registra una ruta. **Override last-wins:** si ya existe una ruta con el mismo
+     * `method`+`path`, la nueva la REEMPLAZA (misma posición). Así, cargando las rutas
+     * de la app DESPUÉS de las del core, la app puede pisar una ruta del core (incluida
+     * la home `/`) sin tocar el core. (Corrige el hallazgo 1.2 de la auditoría de nsCheckout,
+     * donde el router antiguo hacía first-match-wins y la app nunca ganaba.)
+     */
     public function add(string $method, string $path, mixed $handler): void
     {
+        $method = strtoupper($method);
         $path = '/' . trim($path, '/');
         $params = [];
 
@@ -53,12 +64,20 @@ final class Router
             $path
         );
 
-        $this->routes[] = [
-            'method' => strtoupper($method),
+        $route = [
+            'method' => $method,
             'regex'  => '#^' . $regex . '$#',
             'handler' => $handler,
             'params' => $params,
         ];
+
+        $key = $method . ' ' . $path;
+        if (isset($this->index[$key])) {
+            $this->routes[$this->index[$key]] = $route; // override en su lugar
+            return;
+        }
+        $this->index[$key] = count($this->routes);
+        $this->routes[] = $route;
     }
 
     public function dispatch(Request $request): Response

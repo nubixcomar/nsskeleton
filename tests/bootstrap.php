@@ -45,6 +45,32 @@ function it(string $desc, callable $fn): void
     }
 }
 
+/**
+ * Test de base de datos AISLADO (v1.17 #3, hallazgo 1.7):
+ *  - Se saltea (skip) si no hay MySQL disponible.
+ *  - Corre $fn dentro de una transacción y SIEMPRE hace rollback al terminar
+ *    (pase o falle), así los datos sembrados NO quedan en la DB y no ensucian
+ *    otros tests ni ponen la suite en rojo por "esperaba 2 y obtuvo 4".
+ *
+ * Usá $fn para sembrar + assert; no necesitás limpiar a mano.
+ */
+function itDb(string $desc, callable $fn): void
+{
+    it($desc, static function () use ($fn) {
+        try {
+            \Core\Database::connection();
+        } catch (\Throwable) {
+            return 'skip';
+        }
+        \Core\Database::beginTransaction();
+        try {
+            return $fn();
+        } finally {
+            \Core\Database::rollback(); // aislamiento: revierte siempre
+        }
+    });
+}
+
 function assertTrue(mixed $c, string $m = 'esperaba true'): void
 {
     if ($c !== true) {

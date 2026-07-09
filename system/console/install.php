@@ -59,3 +59,19 @@ echo "  1) php system/database/migrate.php   (crea las tablas)\n";
 echo "  2) php system/database/seed.php       (admin inicial)\n";
 echo "  3) php system/database/seed-demo.php  (OPCIONAL: datos demo para ver el dashboard con contenido)\n";
 echo "     (para quitarlos luego: php system/database/seed-demo.php --undo)\n";
+
+// Control de versiones: inicializar git (opt-in con --git) o recordarlo fuerte.
+$git = in_array('--git', $args, true);
+if (!Installer::isGitRepo(PROJECT_PATH)) {
+    if ($git) {
+        echo "\nInicializando git...\n";
+        chdir(PROJECT_PATH);
+        $r = Installer::gitInit(PROJECT_PATH);
+        echo "  {$r['message']}\n";
+    } else {
+        echo "\n⚠  Este proyecto NO tiene control de versiones todavía.\n";
+        echo "   Antes de tocar producción, tené historial/rollback:\n";
+        echo "     git init && git add -A && git commit -m \"commit inicial\"\n";
+        echo "   (o volvé a correr el installer con --git para hacerlo automáticamente)\n";
+    }
+}

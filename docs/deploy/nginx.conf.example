@@ -1,0 +1,57 @@
+# ============================================================================
+# nsSkeleton — server block de NGINX (camino dorado de producción)
+# Deriva del hallazgo 1.3 de la auditoría de nsCheckout: en nginx los .htaccess
+# se ignoran, no hay try_files y SCRIPT_NAME bajo `alias` se reporta mal.
+#
+# Copiá a /etc/nginx/sites-available/tu-sitio, ajustá server_name / root / fpm.
+# ============================================================================
+
+server {
+    listen 80;
+    server_name tu-dominio.com www.tu-dominio.com;
+
+    # ¡IMPORTANTE! El docroot apunta a system/public, NO a la raíz del proyecto.
+    # Así el resto del árbol (docs, tests, installer, agentic, código fuente)
+    # queda FUERA del webroot y no es accesible por HTTP.
+    root /var/www/tu-sitio/system/public;
+    index index.php;
+
+    # Ruteo: todo lo que no sea un archivo real va al front-controller.
+    location / {
+        try_files $uri $uri/ /index.php?$query_string;
+    }
+
+    location ~ \.php$ {
+        include fastcgi_params;
+        fastcgi_pass unix:/run/php/php8.2-fpm.sock;   # ajustá versión/pool
+        fastcgi_param SCRIPT_FILENAME $document_root$fastcgi_script_name;
+
+        # Fix del hallazgo 1.3: forzá SCRIPT_NAME correcto (con `alias`/subdirectorio
+        # nginx lo reporta mal y la app buscaría /login en vez de /admin/login).
+        # Si servís en la raíz del dominio, esta línea no hace falta.
+        # fastcgi_param SCRIPT_NAME /index.php;
+    }
+
+    # Protección: nunca servir secretos ni fuente aunque queden en el árbol.
+    location ~* \.(env|md|sql|log|lock|json|yml|yaml|dist|ini)$ { deny all; }
+    location ~ /\.(?!well-known) { deny all; }   # dotfiles (.git, .env, .htaccess)
+
+    # Cache de assets estáticos compilados.
+    location ~* \.(css|js|png|jpg|jpeg|gif|svg|woff2?|ico)$ {
+        expires 7d;
+        access_log off;
+        try_files $uri =404;
+    }
+
+    client_max_body_size 20m;   # subidas del file manager
+}
+
+# ----------------------------------------------------------------------------
+# Pool PHP-FPM aislado (hallazgo 1.4): si usás open_basedir / usuario propio,
+# el save_path global de PHP no es escribible → login/CSRF/carrito rotos.
+# El core ya apunta session.save_path a system/storage/sessions/ (ver Core\Session),
+# pero si querés fijarlo desde el pool, agregá en /etc/php/8.2/fpm/pool.d/tu-pool.conf:
+#
+#   php_admin_value[session.save_path] = /var/www/tu-sitio/system/storage/sessions
+#   php_admin_value[open_basedir]      = /var/www/tu-sitio:/tmp
+# ----------------------------------------------------------------------------

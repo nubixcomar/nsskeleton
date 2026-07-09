@@ -1,0 +1,31 @@
+# ============================================================================
+# nsSkeleton — VirtualHost de Apache (camino dorado de producción)
+# El .htaccess de system/public ya hace el rewrite a index.php; este vhost fija
+# el DocumentRoot correcto y permite AllowOverride para que el .htaccess funcione.
+# ============================================================================
+
+<VirtualHost *:80>
+    ServerName tu-dominio.com
+    ServerAlias www.tu-dominio.com
+
+    # ¡IMPORTANTE! DocumentRoot apunta a system/public, NO a la raíz del proyecto,
+    # para que docs/tests/installer/agentic/fuente queden FUERA del webroot.
+    DocumentRoot /var/www/tu-sitio/system/public
+
+    <Directory /var/www/tu-sitio/system/public>
+        Options -Indexes +FollowSymLinks
+        AllowOverride All          # necesario para que el .htaccess (rewrite) aplique
+        Require all granted
+    </Directory>
+
+    # Protección extra por si algún archivo sensible quedara accesible.
+    <FilesMatch "\.(env|md|sql|log|lock|yml|yaml|dist|ini)$">
+        Require all denied
+    </FilesMatch>
+
+    ErrorLog  ${APACHE_LOG_DIR}/tu-sitio-error.log
+    CustomLog ${APACHE_LOG_DIR}/tu-sitio-access.log combined
+</VirtualHost>
+
+# Nota: si servís en un subdirectorio o detrás de un proxy y las rutas se
+# resuelven mal, seteá APP_BASE_PATH en el .env (ver docs/deploy/README.md).

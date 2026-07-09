@@ -71,4 +71,54 @@ final class Database
     {
         return self::run($sql, $params)->rowCount();
     }
+
+    /** Inicia una transacción (no-op si ya hay una abierta). */
+    public static function beginTransaction(): void
+    {
+        $pdo = self::connection();
+        if (!$pdo->inTransaction()) {
+            $pdo->beginTransaction();
+        }
+    }
+
+    public static function commit(): void
+    {
+        $pdo = self::connection();
+        if ($pdo->inTransaction()) {
+            $pdo->commit();
+        }
+    }
+
+    public static function rollback(): void
+    {
+        $pdo = self::connection();
+        if ($pdo->inTransaction()) {
+            $pdo->rollBack();
+        }
+    }
+
+    public static function inTransaction(): bool
+    {
+        return self::connection()->inTransaction();
+    }
+
+    /**
+     * Ejecuta $fn dentro de una transacción: commit al terminar, rollback si lanza.
+     * Útil para operaciones atómicas en la app y para aislar tests (ver tests/bootstrap.php).
+     */
+    public static function transaction(callable $fn): mixed
+    {
+        $pdo = self::connection();
+        $pdo->beginTransaction();
+        try {
+            $result = $fn();
+            $pdo->commit();
+            return $result;
+        } catch (\Throwable $e) {
+            if ($pdo->inTransaction()) {
+                $pdo->rollBack();
+            }
+            throw $e;
+        }
+    }
 }

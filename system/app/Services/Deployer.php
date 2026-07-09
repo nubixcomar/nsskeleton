@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Services;
 
+use Core\Config;
 use Core\Env;
 use FilesystemIterator;
 use RecursiveDirectoryIterator;
@@ -15,6 +16,7 @@ use RecursiveIteratorIterator;
  */
 final class Deployer
 {
+    /** Denylist por defecto (si no hay config/deploy.php). */
     private const EXCLUDE = ['/.git/', '/vendor/', '/node_modules/', '/tools/bin/', '/landing/downloads/'];
 
     /** @return array<string,mixed> */
@@ -37,9 +39,23 @@ final class Deployer
         return $c['ftp_host'] !== '' && $c['ftp_user'] !== '';
     }
 
-    /** Archivos a deployar (relativos), con exclusiones (secretos, runtime, deps). @return array<int,string> */
-    public static function filesToDeploy(): array
+    /**
+     * Archivos a deployar (relativos), con exclusiones (secretos, runtime, deps).
+     *
+     * @param bool|null $production  true → paquete de producción (allowlist: solo runtime);
+     *                               false → árbol completo; null → según `config/deploy.php`.
+     * @return array<int,string>
+     */
+    public static function filesToDeploy(?bool $production = null): array
     {
+        $cfg = Config::load('deploy');
+        $exclude = is_array($cfg['exclude'] ?? null) && $cfg['exclude'] !== [] ? $cfg['exclude'] : self::EXCLUDE;
+        $allow = is_array($cfg['production_allow'] ?? null) ? array_map('strval', $cfg['production_allow']) : [];
+
+        if ($production === null) {
+            $production = ($cfg['package'] ?? 'full') === 'production';
+        }
+
         $root = str_replace('\\', '/', PROJECT_PATH);
         $out = [];
 
@@ -54,18 +70,37 @@ final class Deployer
             if (basename($abs) === '.env') {
                 continue;
             }
-            foreach (self::EXCLUDE as $ex) {
-                if (str_contains($abs, $ex)) {
+            foreach ($exclude as $ex) {
+                if (str_contains($abs, (string) $ex)) {
                     continue 2;
                 }
             }
-            if (preg_match('#/storage/(backups|cache|uploads|logs)/#', $abs) && basename($abs) !== '.gitkeep') {
+            if (preg_match('#/storage/(backups|cache|uploads|logs|sessions)/#', $abs) && basename($abs) !== '.gitkeep') {
                 continue;
             }
-            $out[] = ltrim(str_replace($root, '', $abs), '/');
+
+            $rel = ltrim(str_replace($root, '', $abs), '/');
+
+            // Paquete de producción: solo lo que matchea la allowlist de prefijos (hallazgo 1.5).
+            if ($production && !self::underAllowlist($rel, $allow)) {
+                continue;
+            }
+
+            $out[] = $rel;
         }
         sort($out);
         return $out;
+    }
+
+    /** ¿La ruta relativa cae bajo alguno de los prefijos de la allowlist? */
+    private static function underAllowlist(string $rel, array $allow): bool
+    {
+        foreach ($allow as $prefix) {
+            if ($prefix !== '' && str_starts_with($rel, $prefix)) {
+                return true;
+            }
+        }
+        return false;
     }
 
     /** @return array<int,string> comandos git que se ejecutarían */
@@ -80,7 +115,7 @@ final class Deployer
     }
 
     /** @return array{ok:bool,uploaded:int,error:string} */
-    public static function ftpDeploy(?callable $log = null): array
+    public static function ftpDeploy(?callable $log = null, ?bool $production = null): array
     {
         if (!function_exists('ftp_connect')) {
             return ['ok' => false, 'uploaded' => 0, 'error' => 'La extensión FTP de PHP no está disponible.'];
@@ -97,7 +132,7 @@ final class Deployer
         @ftp_pasv($conn, true);
 
         $uploaded = 0;
-        foreach (self::filesToDeploy() as $rel) {
+        foreach (self::filesToDeploy($production) as $rel) {
             $remote = rtrim($c['ftp_path'], '/') . '/' . $rel;
             self::ftpEnsureDir($conn, dirname($remote));
             if (@ftp_put($conn, $remote, PROJECT_PATH . '/' . $rel, FTP_BINARY)) {

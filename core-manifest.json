@@ -1,5 +1,5 @@
 {
-  "core_version": "1.15.1",
+  "core_version": "1.18.0",
   "description": "Reglas de propiedad del core de nsSkeleton. Un archivo es 'core' (lo pisa el actualizador) si matchea core_paths, NO matchea app_paths y NO matchea exclude. Todo lo demas es de la app y el actualizador nunca lo toca. El snapshot concreto con checksums vive en core-lock.json (lo genera system/console/core-manifest.php).",
   "match_rules": {
     "ends_with_slash": "prefijo de directorio (recursivo)",
@@ -23,6 +23,7 @@
     "tools/"
   ],
   "app_paths": [
+    "app/",
     "app-agentic/",
     "docs/brief.md",
     "docs/roadmap.md",
@@ -43,6 +44,7 @@
     "*.zip"
   ],
   "notes": [
+    "app/ (raiz) es la ubicacion del codigo PROPIO del proyecto (hallazgo 1.6): namespace App\\ compartido con el core pero fuera de core-lock; el autoloader busca primero system/app/ (core) y luego app/ (proyecto). Ver app/README.md.",
     "El showcase Clientes (modelo/controller/vistas/ruta/migracion) esta en app_paths: es contenido de ejemplo que el proyecto reemplaza; un update de core NO lo toca.",
     "system/storage/** es runtime/datos: nunca es core.",
     "Las credenciales (.env, secrets/) jamas son core.",

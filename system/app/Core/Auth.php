@@ -5,107 +5,59 @@ declare(strict_types=1);
 namespace Core;
 
 /**
- * Autenticación de administradores contra la tabla `admin_users`.
- * (La tabla se crea en la migración del módulo de login.)
+ * Autenticación de administradores.
  *
- * Columnas esperadas: id, name, email, password (hash), role, active.
+ * Desde v1.17 #7 es una **fachada del guard `default`** (`config/auth.php`), que por defecto
+ * es `admin` (tabla `admin_users`, clave de sesión `_auth_user_id`) → API y comportamiento
+ * idénticos a los históricos. Para otros guards (brand, customer…) usá `Core\Guard::for(...)`.
  */
 final class Auth
 {
-    private const TABLE = 'admin_users';
-    private const SESSION_KEY = '_auth_user_id';
-
-    /**
-     * Intenta autenticar. Devuelve el usuario (sin password) si tiene éxito, o null.
-     *
-     * @return array<string,mixed>|null
-     */
-    public static function attempt(string $login, string $password): ?array
+    private static function guard(): Guard
     {
-        $user = Database::selectOne(
-            'SELECT * FROM ' . self::TABLE . ' WHERE email = ? OR username = ? LIMIT 1',
-            [$login, $login]
-        );
-
-        if ($user === null || (int) ($user['active'] ?? 0) !== 1) {
-            return null;
-        }
-
-        if (!password_verify($password, (string) $user['password'])) {
-            return null;
-        }
-
-        self::login((int) $user['id']);
-        unset($user['password']);
-        return $user;
+        return Guard::default();
     }
 
-    /**
-     * Verifica credenciales SIN iniciar sesión (para flujos con 2FA).
-     * @return array<string,mixed>|null
-     */
+    /** @return array<string,mixed>|null */
+    public static function attempt(string $login, string $password): ?array
+    {
+        return self::guard()->attempt($login, $password);
+    }
+
+    /** @return array<string,mixed>|null */
     public static function verifyCredentials(string $login, string $password): ?array
     {
-        $user = Database::selectOne(
-            'SELECT * FROM ' . self::TABLE . ' WHERE email = ? OR username = ? LIMIT 1',
-            [$login, $login]
-        );
-
-        if ($user === null || (int) ($user['active'] ?? 0) !== 1) {
-            return null;
-        }
-        if (!password_verify($password, (string) $user['password'])) {
-            return null;
-        }
-
-        unset($user['password']);
-        return $user;
+        return self::guard()->verifyCredentials($login, $password);
     }
 
     public static function login(int $userId): void
     {
-        Session::regenerate();
-        Session::set(self::SESSION_KEY, $userId);
+        self::guard()->login($userId);
     }
 
     public static function check(): bool
     {
-        return Session::has(self::SESSION_KEY);
+        return self::guard()->check();
     }
 
     public static function id(): ?int
     {
-        $id = Session::get(self::SESSION_KEY);
-        return $id === null ? null : (int) $id;
+        return self::guard()->id();
     }
 
     /** @return array<string,mixed>|null */
     public static function user(): ?array
     {
-        $id = self::id();
-        if ($id === null) {
-            return null;
-        }
-
-        $user = Database::selectOne(
-            'SELECT * FROM ' . self::TABLE . ' WHERE id = ? LIMIT 1',
-            [$id]
-        );
-
-        if ($user !== null) {
-            unset($user['password']);
-        }
-        return $user;
+        return self::guard()->user();
     }
 
     public static function logout(): void
     {
-        Session::remove(self::SESSION_KEY);
-        Session::regenerate();
+        self::guard()->logout();
     }
 
     public static function hash(string $password): string
     {
-        return password_hash($password, PASSWORD_DEFAULT);
+        return Guard::hash($password);
     }
 }
