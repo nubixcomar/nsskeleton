@@ -13,6 +13,7 @@ use Core\Session;
        class="rounded-lg bg-indigo-600 px-4 py-2 text-sm font-medium text-white hover:bg-indigo-700">Nueva tarea</a>
 </div>
 
+<?= View::partial('admin/cron/_subnav', ['active' => 'tasks']) ?>
 
 <div class="overflow-x-auto rounded-xl bg-white shadow-sm ring-1 ring-slate-200">
     <table class="min-w-full divide-y divide-slate-200 text-sm">

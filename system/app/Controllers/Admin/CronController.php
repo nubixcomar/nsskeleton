@@ -6,6 +6,7 @@ namespace App\Controllers\Admin;
 
 use App\Models\CronTask;
 use App\Services\CronExpression;
+use App\Services\CronMaster;
 use App\Services\CronRunner;
 use Core\Auth;
 use Core\Request;
@@ -26,6 +27,80 @@ final class CronController extends AdminController
             'success' => Session::getFlash('success'),
             'error'   => Session::getFlash('error'),
         ], 'layouts/admin');
+    }
+
+    /** Pestaña "Historial": ejecuciones con filtros y borrado. */
+    public function history(Request $request): Response
+    {
+        $filters = [
+            'task_id' => (int) $request->query('task_id', 0) ?: null,
+            'status'  => (string) $request->query('status', ''),
+            'q'       => trim((string) $request->query('q', '')),
+        ];
+        $page = max(1, (int) $request->query('page', 1));
+        $hist = CronTask::history($filters, $page, 50);
+
+        return $this->view('admin/cron/history', [
+            'user'    => Auth::user(),
+            'hist'    => $hist,
+            'filters' => $filters,
+            'tasks'   => CronTask::tasksWithRuns(),
+            'success' => Session::getFlash('success'),
+            'error'   => Session::getFlash('error'),
+        ], 'layouts/admin');
+    }
+
+    public function clearOk(Request $request): Response
+    {
+        $this->verifyCsrf($request);
+        $n = CronTask::clearOkRuns();
+        Session::flash('success', "Se limpiaron {$n} ejecución(es) exitosa(s). Quedó solo el log de errores.");
+        return $this->redirect(Url::to('/admin/cron/history'));
+    }
+
+    public function clearAll(Request $request): Response
+    {
+        $this->verifyCsrf($request);
+        $n = CronTask::clearAllRuns();
+        Session::flash('success', "Historial vaciado ({$n} ejecución(es) borradas).");
+        return $this->redirect(Url::to('/admin/cron/history'));
+    }
+
+    /** Pestaña "Cron master": configuración del disparador externo. */
+    public function master(): Response
+    {
+        return $this->view('admin/cron/master', [
+            'user'        => Auth::user(),
+            'enabled'     => CronMaster::enabled(),
+            'hasSecret'   => CronMaster::hasSecret(),
+            'url'         => CronMaster::url(),
+            'curl'        => CronMaster::curlCommand(),
+            'minInterval' => CronMaster::minInterval(),
+            'ips'         => implode("\n", CronMaster::ipAllowlist()),
+            'success'     => Session::getFlash('success'),
+            'error'       => Session::getFlash('error'),
+        ], 'layouts/admin');
+    }
+
+    public function saveMaster(Request $request): Response
+    {
+        $this->verifyCsrf($request);
+
+        CronMaster::setEnabled((bool) $request->input('enabled'));
+        CronMaster::setMinInterval((int) $request->input('min_interval', 60));
+        CronMaster::setIpAllowlist((string) $request->input('ip_allowlist', ''));
+
+        Session::flash('success', 'Configuración del cron master guardada.');
+        return $this->redirect(Url::to('/admin/cron/master'));
+    }
+
+    public function rotateSecret(Request $request): Response
+    {
+        $this->verifyCsrf($request);
+
+        CronMaster::rotateSecret();
+        Session::flash('success', 'Secreto del cron master generado. Actualizá la URL en tu disparador externo.');
+        return $this->redirect(Url::to('/admin/cron/master'));
     }
 
     public function create(): Response

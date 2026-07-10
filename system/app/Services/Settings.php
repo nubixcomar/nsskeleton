@@ -59,6 +59,13 @@ final class Settings
         self::set($key, Crypto::encrypt((string) $value), $group);
     }
 
+    /** Limpia la caché en memoria (tests). */
+    public static function flush(): void
+    {
+        self::$cache = [];
+        self::$loaded = false;
+    }
+
     private static function load(): void
     {
         if (self::$loaded) {

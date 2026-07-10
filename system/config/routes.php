@@ -23,6 +23,10 @@ return static function (Router $router): void {
     $router->get('/_migrate', 'MigrateController@handle');
     $router->post('/_migrate', 'MigrateController@handle');
 
+    // Cron master: disparador externo protegido por secreto/IP/toggle (sin login).
+    $router->get('/cron/run', 'CronRunController@run');
+    $router->post('/cron/run', 'CronRunController@run');
+
     // Descarga pública de archivos compartidos por token (sin login).
     $router->get('/a/{token}', 'PublicFileController@download');
 
@@ -122,6 +126,12 @@ return static function (Router $router): void {
 
     // Tareas programadas (cronmaster).
     $router->get('/admin/cron', 'Admin\CronController@index');
+    $router->get('/admin/cron/master', 'Admin\CronController@master');
+    $router->post('/admin/cron/master', 'Admin\CronController@saveMaster');
+    $router->post('/admin/cron/master/rotate', 'Admin\CronController@rotateSecret');
+    $router->get('/admin/cron/history', 'Admin\CronController@history');
+    $router->post('/admin/cron/history/clear-ok', 'Admin\CronController@clearOk');
+    $router->post('/admin/cron/history/clear-all', 'Admin\CronController@clearAll');
     $router->get('/admin/cron/create', 'Admin\CronController@create');
     $router->post('/admin/cron', 'Admin\CronController@store');
     $router->get('/admin/cron/{id}/edit', 'Admin\CronController@edit');

@@ -3,6 +3,19 @@
 Todas las versiones notables de nsSkeleton. Formato basado en versionado semántico.
 Lo mantiene el comando `/release` (ver `agentic/commands/release.md`).
 
+## [1.19.0] — 2026-07-09
+**Cron v2** — features del scheduler de nsCentral portadas a MySQL. 17 tests nuevos (367→384).
+- **Cron master**: disparador web `GET|POST /cron/run` protegido por secreto (`?key=` o header
+  `X-Cron-Key`, constant-time), allowlist de IP y toggle (503 si off) — permite disparar el cron
+  desde EasyCron/`curl` sin depender del cron del SO. Pantalla `/admin/cron/master` (URL, comando
+  curl, generar/rotar secreto, IPs). `App\Services\CronMaster`.
+- **Tareas tipo URL**: comando `url:https://…` (o `url:POST … {json}`) que hace un HTTP con
+  reintentos vía `App\Services\Http`; éxito = 2xx. Convive con shell y `job:`.
+- **Historial**: pestaña `/admin/cron/history` con filtros (tarea/estado/mensaje), tipo de
+  disparo y duración; botones **"Limpiar OK"** (deja solo errores) y **"Vaciar registro"**.
+  `cron_runs` +`trigger_type` +`duration_ms`.
+- Fix: colisión de variable `$data` con `View::partial` (extract EXTR_SKIP) en la vista de historial.
+
 ## [1.18.0] — 2026-07-09
 Mejoras del core derivadas de la **auditoría de nsCheckout** (app derivada: deploy real a
 nginx + Mercado Pago embebido). 80 tests nuevos, suite 269→367 verde. Informe y plan en

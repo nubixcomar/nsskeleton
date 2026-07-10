@@ -27,14 +27,18 @@ $runs = $runs ?? [];
         <div>
             <label class="mb-1 block text-sm font-medium text-slate-700">Comando</label>
             <input type="text" name="command" required value="<?= View::e($editing['command'] ?? '') ?>"
-                   placeholder="php system/backup/run.php  ó  job:demo:ping" list="cronjobs"
+                   placeholder="php system/backup/run.php · job:demo:ping · url:https://mi-sitio/tarea" list="cronjobs"
                    class="w-full rounded-lg border border-slate-300 px-3 py-2 font-mono text-sm focus:border-indigo-500 focus:ring-indigo-500">
             <datalist id="cronjobs">
                 <?php foreach (\App\Services\Jobs::names() as $job): ?>
                     <option value="job:<?= View::e($job) ?>"></option>
                 <?php endforeach; ?>
             </datalist>
-            <p class="mt-1 text-xs text-slate-400">Comando de shell (capturamos salida + exit code) o un job interno: <code>job:&lt;nombre&gt;</code>.</p>
+            <p class="mt-1 text-xs text-slate-400">
+                Tres tipos: comando de <strong>shell</strong> (salida + exit code) ·
+                <strong>job interno</strong> <code>job:&lt;nombre&gt;</code> ·
+                <strong>URL</strong> <code>url:https://…</code> (o <code>url:POST https://… {"json":true}</code>), con reintentos.
+            </p>
         </div>
         <div x-data="cronBuilder('<?= View::e($editing['schedule'] ?? '*/5 * * * *') ?>')">
             <label class="mb-1 block text-sm font-medium text-slate-700">Horario</label>

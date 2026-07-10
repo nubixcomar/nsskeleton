@@ -197,6 +197,15 @@
 | 4 | Migración remota protegida por token | ✅ | `/_migrate` token-gated (404 por defecto); `RemoteMigrate`; 4 tests |
 | 5 | `git init` en el installer | ✅ | `Installer::gitInit` + `install.php --git` + recordatorio; 4 tests |
 
+## v1.19 — Cron v2 (cron master + tareas URL + historial) · ✅ COMPLETA (2026-07-09)
+> Portado del scheduler de **nsCentral** a MySQL. Plan: [`plan-cron-v2.md`](../agentic/knowledge/skeleton/plan-cron-v2.md).
+
+| # | Feature | Estado | Notas |
+|---|---------|--------|-------|
+| 1 | **Cron master** (disparador web protegido) | ✅ | `/cron/run` secreto/IP/toggle + `App\Services\CronMaster` + pantalla `/admin/cron/master`; 9 tests |
+| 2 | **Tareas tipo URL** (HTTP con reintentos) | ✅ | prefijo `url:` en `CronRunner` vía `Core\Http`; 4 tests |
+| 3 | **Historial** + Limpiar OK / Vaciar | ✅ | `/admin/cron/history` filtros + disparo + duración; `cron_runs` +trigger_type/+duration_ms; 4 tests |
+
 ## Extracciones de nsCheckout (sección 2 del informe) · ✅ RESUELTAS (2026-07-09)
 > Piezas construidas en nsCheckout evaluadas para el core. Detalle en el plan.
 

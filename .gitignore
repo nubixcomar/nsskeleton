@@ -30,6 +30,8 @@
 !/system/storage/uploads/.gitkeep
 /system/storage/sessions/*
 !/system/storage/sessions/.gitkeep
+/system/storage/logs/*
+!/system/storage/logs/.gitkeep
 *.log.tmp
 
 # --- Logs agénticos: se versionan walkthroughs e índices, no ruido temporal ---
