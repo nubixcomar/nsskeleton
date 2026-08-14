@@ -47,28 +47,39 @@ decisión tuya.
 ```
 nsSkeleton/
 ├── AGENTS.md       Archivo de arranque universal (la IA empieza acá)
-├── landing/        Landing page de presentación + descarga (ZIP)
-├── agentic/        Capa agéntica agnóstica (fuente de verdad)
+├── landing/        Landing page de presentación + build de paquetes (ZIP)
+├── agentic/        Capa agéntica agnóstica del CORE (fuente de verdad)
 │   ├── rules/        Reglas en cascada (master → stack → features)
-│   ├── agents/       Agentes por categoría (qa, audit, dev, docs, data, frontend)
+│   ├── agents/       Agentes por categoría (qa, audit, dev, docs, data, frontend, integrations)
 │   ├── skills/       Especificación detallada por skill ({nombre}/SKILL.md)
 │   ├── commands/     Comandos de orquestación (/bug, /audit, /fix, /sprint...)
 │   ├── templates/    Plantillas: brief, roadmap, bug-report, walkthrough...
 │   ├── methodology/  Sprints, bug-tracking y logging obligatorio
+│   ├── knowledge/    Manuales de referencia (APIs de ecommerce, etc.)
 │   └── adapters/     Bindings por stack (php-mvc por defecto)
+├── app-agentic/    Capa agéntica DEL PROYECTO (nunca la pisa un update de core)
 ├── installer/      Q&A + materializadores por IA (targets/)
-├── system/         Esqueleto de sistema (PHP MVC + MySQL)
-├── docs/           brief.md · roadmap.md · architecture.md · stack.md
+├── system/         Esqueleto de sistema, CORE (PHP MVC + MySQL)
+├── app/            Código del proyecto (namespace App\): Controllers/Models/Services/Views
+├── tests/          Suite propia (unit/ + feature/) — `php tests/run.php`
+├── docs/           brief.md · roadmap.md · architecture.md · stack.md · CHANGELOG.md
 ├── logs/           Logs incrementales por agente + walkthroughs
+├── core-manifest.json  Frontera declarativa core/app (qué es del core)
+├── core-lock.json      Snapshot sha256 del core (lo usa /actualizar-core)
 ├── .env.example    Plantilla de credenciales (DB, FTP, repos, deploy, IA)
 └── README.md
 ```
+
+**Frontera core / proyecto:** el core es dueño **solo** de lo que lista `core-manifest.json`;
+todo lo demás (`app/`, `app-agentic/`, overrides, migraciones de app) es del proyecto y
+sobrevive intacto a un update de core. Ver [`docs/CORE-UPDATE.md`](docs/CORE-UPDATE.md).
 
 ---
 
 ## Cómo se usa (flujo previsto)
 
-1. Cloná/descargá nsSkeleton como base de tu nuevo proyecto.
+1. Cloná/descargá nsSkeleton como base de tu nuevo proyecto — **no copies la carpeta a mano**,
+   seguí el Paso 0 de [`docs/INSTALL.md`](docs/INSTALL.md).
 2. La IA ejecuta el **instalador**: te pregunta stack, IA a usar y datos del proyecto.
 3. El instalador completa `docs/` y `.env`; la capa agéntica queda lista en `agentic/`
    y la IA la consume arrancando por `AGENTS.md` (sin generar carpetas propietarias).
@@ -92,12 +103,30 @@ Ver detalle en [`agentic/methodology/logging.md`](agentic/methodology/logging.md
 
 ## Estado del proyecto
 
-✅ **Versión 1.4.0 — roadmap v1.1→v1.4 completo** (137 tests verdes, verificado contra
-MySQL). Sobre el MVP (núcleo MVC, login/perfiles, cron, emails, backups, gráficos, file
-manager, IA) se sumó: tests + cifrado + hardening de login + reset password + headers +
-assets locales (v1.1); generador de módulos CRUD + rollback + búsqueda/paginación +
-settings + auditoría + sprint/release (v1.2); API REST + RBAC + cron jobs + cola de
-emails + file manager+ + IA prompts (v1.3); instalador + seeders demo + módulo showcase +
-deploy (v1.4). Ver [`docs/CHANGELOG.md`](docs/CHANGELOG.md).
+✅ **Versión 1.19.0** — 384 tests verdes, verificados contra MySQL.
+
+Sobre el MVP (núcleo MVC, login/perfiles, cron, emails, backups, gráficos, file manager, IA)
+se fue sumando:
+
+- **v1.1→v1.4** — tests + cifrado + hardening de login + reset password + headers + assets
+  locales; generador de módulos CRUD + búsqueda/paginación + settings + auditoría; API REST +
+  RBAC + cron jobs + cola de emails; instalador + seeders demo + módulo showcase + deploy.
+- **v1.5→v1.9** — UX & DX; generador++ y datos; seguridad & cuentas; API & procesos; mejoras
+  portadas de nsCentral.
+- **v1.10** — conector genérico de ecommerce (nubixstore, Shopify, TiendaNube, WooCommerce,
+  Magento) + agentes/skills de integración.
+- **v1.11→v1.15** — **actualización de core** end-to-end: frontera declarativa core/app
+  (`core-manifest.json` + lock), split agéntico (`app-agentic/`), puntos de extensión
+  (config/rutas/vistas/migraciones override), el actualizador con plan-conflictos-rollback,
+  publicación del paquete de core y el comando asistido `/actualizar-core`.
+- **v1.16→v1.18** — camino dorado de producción: CSP configurable + presets, override real de
+  rutas app→core, templates de deploy (nginx/Apache) y `deploy:doctor`; más el saldo de la
+  auditoría de nsCheckout (`Http` con retries, verificación de webhooks entrantes, `db:doctor`,
+  `Money`, `Hmac`, migración remota por token).
+- **v1.19** — **Cron v2**: disparador web `/cron/run` protegido por secreto + allowlist de IP
+  (para EasyCron/curl, sin depender del cron del SO), tareas tipo `url:` e historial de
+  ejecuciones con filtros.
+
+Detalle completo en [`docs/CHANGELOG.md`](docs/CHANGELOG.md).
 
 Puesta en marcha: ver [`docs/INSTALL.md`](docs/INSTALL.md). Avance: [`docs/roadmap.md`](docs/roadmap.md).
