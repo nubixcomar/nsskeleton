@@ -6,7 +6,7 @@ namespace Core;
 
 /**
  * Cargador simple de archivos .env (sin dependencias).
- * Soporta comentarios (#), comillas y expansión ${VAR}.
+ * Soporta comentarios (#, también al final de línea), comillas y expansión ${VAR}.
  */
 final class Env
 {
@@ -26,14 +26,7 @@ final class Env
 
             [$key, $value] = explode('=', $line, 2);
             $key = trim($key);
-            $value = trim($value);
-
-            // Quitar comillas envolventes.
-            if (strlen($value) >= 2
-                && ($value[0] === '"' || $value[0] === "'")
-                && $value[strlen($value) - 1] === $value[0]) {
-                $value = substr($value, 1, -1);
-            }
+            $value = self::parseValue($value);
 
             // Expandir referencias ${VAR}.
             $value = preg_replace_callback('/\$\{([A-Z0-9_]+)\}/', static function (array $m): string {
@@ -46,6 +39,38 @@ final class Env
                 $_ENV[$key] = $value;
             }
         }
+    }
+
+    /**
+     * Valor crudo de una línea `CLAVE=valor` → valor final (semántica dotenv):
+     *  - Entre comillas ("…" o '…'): se toma el contenido; lo que siga al cierre (ej. un
+     *    `# comentario`) se ignora. Un `#` dentro de las comillas es parte del valor.
+     *  - Sin comillas: un `#` precedido de espacio (o al inicio) abre un comentario hasta el
+     *    final de la línea. Un `#` pegado al valor (`abc#123`) se conserva.
+     * Así funcionan los comentarios al final de línea que usa `.env.example`.
+     */
+    public static function parseValue(string $raw): string
+    {
+        $value = trim($raw);
+        if ($value === '') {
+            return '';
+        }
+
+        $q = $value[0];
+        if ($q === '"' || $q === "'") {
+            $end = strpos($value, $q, 1);
+            if ($end !== false) {
+                return substr($value, 1, $end - 1);
+            }
+            // Comilla sin cerrar: se deja tal cual (compatibilidad).
+            return $value;
+        }
+
+        if (str_starts_with($value, '#')) {
+            return '';
+        }
+        $value = (string) preg_replace('/\s+#.*$/', '', $value);
+        return rtrim($value);
     }
 
     /**

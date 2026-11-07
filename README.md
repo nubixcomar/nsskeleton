@@ -122,7 +122,7 @@ Ver detalle en [`agentic/methodology/logging.md`](agentic/methodology/logging.md
 
 ## Estado del proyecto
 
-✅ **Versión 1.20.1** — 446 tests verdes, verificados contra MySQL.
+✅ **Versión 1.20.2** — 452 tests verdes, verificados contra MySQL.
 
 Sobre el MVP (núcleo MVC, login/perfiles, cron, emails, backups, gráficos, file manager, IA)
 se fue sumando:

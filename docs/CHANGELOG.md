@@ -5,6 +5,23 @@ Lo mantiene el comando `/release` (ver `agentic/commands/release.md`).
 
 ## [Sin publicar]
 
+## [1.20.2] — 2026-11-07
+**Resumen:** el `.env` ya no mete los comentarios al final de línea dentro de los valores.
+
+**Correcciones**
+- `Core\Env`: los comentarios al final de línea que trae `.env.example`
+  (`APP_ENV=local   # local | staging | production`) quedaban como parte del valor. En todo
+  proyecto creado desde `.env.example` (ej. con `/nuevo-proyecto`) eso dejaba mal `APP_ENV`,
+  `APP_DEBUG` (no casteaba a `true`), `SESSION_LIFETIME` (warning de `session.gc_maxlifetime` en
+  cada request), `MAIL_ENCRYPTION` (rompía el envío), `AI_PROVIDER`, `AGENTIC_TARGET` y
+  `GIT_TOKEN`. Nuevo `Env::parseValue()` con semántica dotenv: sin comillas, un `#` precedido de
+  espacio abre un comentario; un `#` pegado al valor (`abc#123`) se conserva; entre comillas se
+  toma el contenido y se ignora lo que sigue. Test nuevo `EnvTest` (incluye chequear todo `.env.example`).
+
+**Notas de actualización**
+- Sin cambios de configuración. Si alguna contraseña del `.env` tiene ` #` (espacio + numeral)
+  sin comillas, ponela entre comillas: desde ahora eso se lee como comentario.
+
 ## [1.20.1] — 2026-11-07
 **Resumen:** saltos de línea fijos en LF para que los clones por git no rompan el actualizador.
 
