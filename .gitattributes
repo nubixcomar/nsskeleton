@@ -1,0 +1,22 @@
+# Saltos de línea fijos en LF para todo el texto, en cualquier SO y con cualquier
+# core.autocrlf. El core-lock.json guarda el sha256 de cada archivo del core tal como está
+# en el repo (LF): si un clon en Windows convirtiera a CRLF, el actualizador vería todos los
+# archivos del core como "editados por el proyecto".
+* text=auto eol=lf
+
+# Binarios: nunca tocar.
+*.png  binary
+*.jpg  binary
+*.jpeg binary
+*.gif  binary
+*.ico  binary
+*.webp binary
+*.woff binary
+*.woff2 binary
+*.ttf  binary
+*.zip  binary
+*.pdf  binary
+
+# Scripts de Windows sí necesitan CRLF.
+*.bat  text eol=crlf
+*.cmd  text eol=crlf

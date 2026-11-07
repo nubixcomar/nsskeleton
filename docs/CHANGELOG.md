@@ -5,6 +5,26 @@ Lo mantiene el comando `/release` (ver `agentic/commands/release.md`).
 
 ## [Sin publicar]
 
+## [1.20.1] — 2026-11-07
+**Resumen:** saltos de línea fijos en LF para que los clones por git no rompan el actualizador.
+
+**Correcciones**
+- Nuevo `.gitattributes` (`* text=auto eol=lf`, binarios marcados, `.bat`/`.cmd` en CRLF) y
+  agregado a `core_paths` (viaja en el paquete de core). Sin él, un clon en Windows con
+  `core.autocrlf=true` convertía los archivos a CRLF: sus sha256 dejaban de coincidir con
+  `core-lock.json` y el actualizador veía todo el core como "editado por el proyecto".
+  No afecta a proyectos creados con `/nuevo-proyecto` o desde el zip.
+- 6 archivos del core estaban en CRLF en el disco del master (`RemoteDocs.php`, `jobs.php`,
+  `remote_docs.php`, `docs-sync.php`, `schema.sql`, `RemoteDocsTest.php`): el lock se calculaba
+  sobre esa versión y no coincidía con la de git (LF). Normalizados a LF + test nuevo
+  `LineEndingsTest` que falla si un archivo de texto del core tiene CRLF. Verificado con un clon
+  real con `core.autocrlf=true`: sin drift.
+
+**Notas de actualización**
+- Proyectos clonados por git en Windows **antes** de esta versión: después de actualizar,
+  `git add --renormalize . && git checkout -- .` para volver los archivos a LF; recién ahí el
+  lock coincide de nuevo.
+
 ## [1.20.0] — 2026-11-07
 **Resumen:** actualizador de core con merge 3-way, `latest.json` y pantalla de admin;
 `/nuevo-proyecto` para crear derivados en un paso; manuales remotos; y la metodología
