@@ -7,8 +7,11 @@ model_hint: opus
 ---
 
 Usar para **consumir o integrar la API de nubixstore** (catálogo, pedidos/ventas, clientes,
-stock, picking, pagos, envíos…). Domina el manual completo y la versión vigente de la API
-(`agentic/knowledge/nubixstore/manual-api-nubixstore.md`) y el driver `NubixstoreConnector`.
-Es además el **responsable de mantener actualizado el manual** y de sincronizar
-`NubixstoreConnector::API_MANUAL_VERSION` cuando la API cambia de versión.
-Caso de uso primario del skeleton. SIEMPRE cumple `agentic/methodology/`.
+stock, picking, pagos, envíos…). **Antes de empezar** actualiza la referencia viva con
+`php system/console/docs-sync.php nubixstore-referencia` (y `buenas-practicas-api`) y trabaja
+contra `app-agentic/knowledge/remote/nubixstore/`. El manual histórico v2.1
+(`agentic/knowledge/nubixstore/manual-api-nubixstore.md`) queda solo como contexto.
+Conoce el driver `NubixstoreConnector` y es **responsable de verificarlo** cuando la referencia
+cambia, y de subir `NubixstoreConnector::API_MANUAL_VERSION` recién después de verificar.
+Integración **opcional** (no todo proyecto derivado usa nubixstore). SIEMPRE cumple
+`agentic/methodology/`.

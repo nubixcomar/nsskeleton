@@ -1,5 +1,9 @@
 # Roadmap de funcionalidades y versiones
 
+> ⭐ **Desde 2026-11-07 la fuente de verdad del roadmap es [`planning/roadmap/INDEX.md`](../planning/roadmap/INDEX.md)**
+> (metodología Roadmap → Brief → Plan). Cada sección de abajo se migró a un `RM-` (RM-001…RM-021);
+> este archivo queda como **registro histórico por versión**. Lo nuevo se carga con `/roadmap new`.
+
 > Roadmap detallado por versiones. Cada versión agrupa funcionalidades con estado.
 > Los agentes actualizan el estado al completar features (ver
 > [`agentic/methodology/sprints.md`](../agentic/methodology/sprints.md)).
@@ -151,15 +155,16 @@
 | 6 | Publicación (`build-core-package.php` + `/release` + `--url`) | ✅  | zip de core derivado del lock |
 | 5 | Capa asistida (`/actualizar-core` + agente/skill + doc)   | ✅     | dry-run, triage, verificación |
 
-### Backlog del core — mejoras futuras 📋
-> Mejoras opcionales sobre el mecanismo de actualización de core. No bloquean: el mecanismo ya
-> funciona end-to-end. Tomar cuando aporten valor.
+### Backlog del core — mejoras del actualizador · ✅ COMPLETO (2026-11-07, v1.20.0)
+> Mejoras sobre el mecanismo de actualización de core. Implementadas juntas sobre un
+> orquestador común (`App\Services\CoreUpdate`) que usan el CLI y el panel. 23 tests nuevos +
+> prueba E2E por HTTP en una instalación aislada (update, merge, choque, rollback).
 
 | # | Mejora                                                     | Estado | Notas |
 |---|------------------------------------------------------------|--------|-------|
-| 1 | **Merge 3-way asistido** para conflictos                  | 📋     | hoy el conflicto se deja como `.new` para merge manual; un 3-way (base=lock instalado, ours=local, theirs=core nuevo) reduciría el trabajo manual |
-| 2 | **`latest.json`** en el landing para que `--url` resuelva "la última" | 📋 | el updater podría chequear/avisar si hay versión nueva sin pasar la URL exacta |
-| 3 | **UI de admin** para disparar/monitorear el update         | 📋     | botón "Actualizar core" con plan, confirmación y resultado desde el panel (hoy es CLI/comando) |
+| 1 | **Merge 3-way asistido** para conflictos                  | ✅     | `ThreeWayMerge` (diff3 PHP puro) + base `storage/core-base/` (captura oportunista, rotación por update, `--seed-base[=remote]`); sin choques → mergeado, con choques → `.new` + `.merge` |
+| 2 | **`latest.json`** en el landing                            | ✅     | `build-core-package.php` lo escribe; `CoreRelease` + `--check` (exit 3) / `--latest` / `--sha256`; descarga verificada por sha256 |
+| 3 | **UI de admin** para disparar/monitorear el update         | ✅     | `/admin/core-update` (permiso `core.update`): buscar → preparar → plan con vista previa del merge → aplicar (confirmación con la versión) → historial + revertir; `CORE_UPDATE_UI=false` la apaga |
 
 ---
 

@@ -49,6 +49,22 @@ skill de `../skills/{nombre}/SKILL.md`. Estados: ✅ implementado · 🧩 planif
 | `ecommerce-integrator`| `ecommerce`, `tienda` | Integra con APIs de tiendas (Shopify/TN/Woo/Magento/ns).   | ✅     |
 | `nubixstore-api`     | `nubixstore`, `ns-api` | Consume/integra la API de nubixstore; mantiene su manual.  | ✅     |
 
+## product/ — Descubrimiento (briefs BR-)
+| Agente              | Alias                     | Propósito                                                    | Estado |
+|---------------------|---------------------------|--------------------------------------------------------------|--------|
+| `brief-discovery`   | `brief`, `discovery`      | Curioso: entrevista al humano y construye el brief sin dudas.| ✅     |
+| `creative-explorer` | `creativo`, `explorar`    | Creativo: alternativas, oportunidades, "¿y si…?".            | ✅     |
+| `devils-advocate`   | `cuestionar`, `critic`    | Escéptico: supuestos, riesgos, huecos (briefs y planes).     | ✅     |
+
+## planning/ — Roadmap y planes (RM- / PL-)
+| Agente            | Alias                  | Propósito                                                      | Estado |
+|-------------------|------------------------|----------------------------------------------------------------|--------|
+| `roadmap-manager` | `roadmap`, `rm`        | Iniciativas RM-, fechas, coherencia de índices, sugerencias.   | ✅     |
+| `plan-architect`  | `planificador`         | Escribe planes PL- por fases (modelo más capaz, esfuerzo máx). | ✅     |
+| `plan-executor`   | `ejecutor`, `run`      | Ejecuta planes aprobados fase por fase; apto para loop.        | ✅     |
+
+> Flujo: [`../methodology/roadmap-brief-plan.md`](../methodology/roadmap-brief-plan.md).
+
 ## pm/ — Gestión de proyecto
 | Agente            | Alias       | Propósito                                  | Estado |
 |-------------------|-------------|--------------------------------------------|--------|

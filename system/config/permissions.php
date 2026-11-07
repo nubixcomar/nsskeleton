@@ -21,6 +21,7 @@ return [
         'api.manage'      => 'Gestionar API',
         'modules.manage'  => 'Gestionar módulos',
         'logs.view'       => 'Ver logs de errores',
+        'core.update'     => 'Actualizar el core (solo superadmin por defecto)',
     ],
     'roles' => [
         'superadmin' => ['*'],

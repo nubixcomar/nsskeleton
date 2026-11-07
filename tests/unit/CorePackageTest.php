@@ -15,6 +15,10 @@ it('build-core-package genera un zip con el core y su lock, sin la app', functio
     if (!class_exists('ZipArchive') || !function_exists('exec')) {
         return 'skip';
     }
+    // Solo el master empaqueta core: en un proyecto derivado no hay landing/ (o está marcado).
+    if (!\App\Services\ProjectCreator::isMaster($root)) {
+        return 'skip';
+    }
     $outDir = sys_get_temp_dir() . '/nscore_' . bin2hex(random_bytes(4));
     @mkdir($outDir, 0775, true);
 
@@ -50,7 +54,15 @@ it('build-core-package genera un zip con el core y su lock, sin la app', functio
         assertFalse(str_starts_with($n, 'landing/downloads/'), "no debe traer descargas: {$n}");
     }
 
+    // latest.json (v1.20): índice válido que apunta al zip recién generado con su sha256.
+    $idx = json_decode((string) @file_get_contents($outDir . '/latest.json'), true);
+    assertTrue(\App\Services\CoreRelease::validateIndex($idx) === null, 'latest.json inválido');
+    $rel = $idx['releases'][$idx['latest']];
+    assertEquals(basename($zips[0]), $rel['file']);
+    assertEquals(hash_file('sha256', $zips[0]), $rel['sha256']);
+
     // Limpieza.
     @unlink($zips[0]);
+    @unlink($outDir . '/latest.json');
     @rmdir($outDir);
 });

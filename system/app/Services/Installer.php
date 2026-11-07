@@ -14,10 +14,11 @@ final class Installer
     /**
      * Genera el contenido de `.env` a partir de `.env.example` + respuestas.
      * @param array<string,mixed> $answers
+     * @param string|null $templateFile `.env.example` a usar (default: el de este proyecto).
      */
-    public static function buildEnv(array $answers): string
+    public static function buildEnv(array $answers, ?string $templateFile = null): string
     {
-        $template = @file_get_contents(PROJECT_PATH . '/.env.example') ?: '';
+        $template = @file_get_contents($templateFile ?? PROJECT_PATH . '/.env.example') ?: '';
 
         $map = [
             'APP_NAME'  => $answers['project_name'] ?? null,
@@ -28,6 +29,8 @@ final class Installer
             'DB_USER'   => $answers['db_user'] ?? null,
             'DB_PASS'   => $answers['db_pass'] ?? null,
             'AI_PROVIDER' => $answers['ai_provider_runtime'] ?? null,
+            'APP_KEY'   => $answers['app_key'] ?? null,
+            'CORE_UPDATE_URL' => $answers['core_update_url'] ?? null,
         ];
 
         foreach ($map as $key => $value) {
@@ -35,7 +38,14 @@ final class Installer
                 continue;
             }
             $line = $key . '=' . self::envValue((string) $value);
-            $template = (string) preg_replace('/^' . preg_quote($key, '/') . '=.*$/m', $line, $template, 1);
+            // Callback y no string de reemplazo: un valor con `$1` o `\1` (ej. una contraseña)
+            // no debe interpretarse como referencia al grupo capturado.
+            $template = (string) preg_replace_callback(
+                '/^' . preg_quote($key, '/') . '=.*$/m',
+                static fn (): string => $line,
+                $template,
+                1
+            );
         }
 
         return $template;

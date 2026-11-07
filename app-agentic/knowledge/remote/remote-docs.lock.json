@@ -1,0 +1,25 @@
+{
+    "_comment": "Generado por App\\Services\\RemoteDocs. No editar a mano.",
+    "docs": {
+        "buenas-practicas-api": {
+            "changed_at": "2026-11-07T13:13:18+01:00",
+            "prev_version": null,
+            "url": "https://central.nstore.ar/manuales/buenas-practicas-api",
+            "file": "nubixstore/buenas-practicas-api.md",
+            "version": "1.6.0",
+            "sha256": "b8f1ecc42227d1748844d372305c23a723a2f34f46442f683386297372a595eb",
+            "bytes": 56616,
+            "checked_at": "2026-11-07T13:13:23+01:00"
+        },
+        "nubixstore-referencia": {
+            "changed_at": "2026-11-07T13:13:17+01:00",
+            "prev_version": null,
+            "url": "https://central.nstore.ar/manuales/referencia-api-nubixstore",
+            "file": "nubixstore/referencia-api-nubixstore.md",
+            "version": "2.6.0+09a6bd63",
+            "sha256": "f563319a6469821d2f527d4ad5db6828cfc7b1aa53c577e4cb718aaeb48eb4e9",
+            "bytes": 169456,
+            "checked_at": "2026-11-07T13:13:22+01:00"
+        }
+    }
+}

@@ -11,7 +11,10 @@
 2. **Aislamiento de features** (heredado de nubixstore): cada feature nuevo vive lo
    más aislado posible; no refactoriza "de paso"; es desactivable sin romper otros.
 3. **Definición de Hecho (DoD)** explícita por feature (ver abajo).
-4. **Trazabilidad obligatoria**: todo avance queda en `logs/` y en `docs/roadmap.md`.
+4. **Trazabilidad obligatoria**: todo avance queda en `logs/` y en el roadmap
+   (`planning/roadmap/INDEX.md`; `docs/roadmap.md` en proyectos legados).
+5. **Se trabaja desde planes**: el sprint toma iniciativas (`RM-`) y planes (`PL-`) aprobados;
+   el plan es la unidad de trabajo (ver [`roadmap-brief-plan.md`](roadmap-brief-plan.md)).
 
 ---
 
@@ -26,7 +29,7 @@
 ### Ceremonias (adaptadas a flujo humano + agentes)
 | Momento        | Qué se hace                                                        |
 |----------------|--------------------------------------------------------------------|
-| **Planning**   | Se eligen features del roadmap para el sprint y se fija el objetivo.|
+| **Planning**   | Se eligen `RM-`/`PL-` aprobados para el sprint y se fija el objetivo. Lo que no tiene plan y es M+ → primero `/brief`/`/plan`.|
 | **Desarrollo** | Agentes implementan; cada uno registra en `logs/` (logging.md).    |
 | **Testing**    | Agente de QA detecta bugs (bug-tracking.md) antes del cierre.       |
 | **Review**     | Se revisa lo hecho contra la DoD; se actualiza estado en roadmap.   |
@@ -46,11 +49,13 @@ Un feature solo pasa a `✅ Completo` cuando cumple la **Definición de Hecho**.
 
 Un feature está **Hecho** cuando:
 
-- [ ] Cumple la especificación del `docs/brief.md` (o doc de módulo).
+- [ ] Cumple la especificación del `docs/brief.md` (o doc de módulo) y del `BR-` vinculado.
+- [ ] Si se implementó desde un plan: `PL-` en `✅ Completado` (todas sus fases hechas o
+      omitidas con motivo) y `BR-`/`RM-` vinculados actualizados.
 - [ ] Está aislado y es desactivable sin romper otros módulos.
 - [ ] Pasó la detección de bugs (sin CRÍTICO/GRAVE abiertos).
 - [ ] Tiene walkthrough en `logs/walkthrough/` y línea en `logs/<agente>.log`.
-- [ ] Estado actualizado en `docs/roadmap.md`.
+- [ ] Estado actualizado en el roadmap (`planning/roadmap/INDEX.md` o `docs/roadmap.md`).
 - [ ] Si aplica: migración SQL versionada y documentada.
 
 ---

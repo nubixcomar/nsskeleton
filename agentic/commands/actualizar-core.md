@@ -10,13 +10,16 @@ desarrollado** (overrides, módulos, datos). Envuelve `system/console/core-updat
 
 ## Proceso
 1. Invoca el agente `core-updater`.
-2. **DRY-RUN**: `php system/console/core-update.php --source=<dir|zip>` (o `--url=<url>`) y
-   muestra el plan: agregados/actualizados/eliminados limpios y, sobre todo, **conflictos**
-   (archivos del core que la app editó → quedarán como `.new`).
+2. **DRY-RUN**: `php system/console/core-update.php --latest` (o `--source=<dir|zip>` /
+   `--url=<url> --sha256=<hash>`) y muestra el plan: agregados/actualizados/eliminados limpios
+   y, sobre todo, **conflictos** (archivos del core que la app editó), con la vista previa del
+   merge 3-way de cada uno (se combina solo / con choques / sin original → `.new`). Si hay
+   editados sin original, propone `--seed-base=remote` antes de aplicar.
 3. Pide confirmación. Si hay conflictos, explica cada uno y propone moverlos a un punto de
    extensión (`config/overrides/`, `routes.app.php`, `app/Views/overrides/`, `app-agentic/…`).
 4. **Aplica**: `… --apply` (backup automático en `storage/backups/` + migraciones del core).
-5. Resuelve los archivos `.new` (merge) y **corre la suite** (`php tests/run.php`).
+5. Muestra los archivos **mergeados** automáticamente para revisión, resuelve los `.new`
+   (partiendo del `.merge` si hubo choques) y **corre la suite** (`php tests/run.php`).
 6. Si algo quedó mal: `… --rollback=<backupDir>`.
 7. Registra el walkthrough (versión origen→destino, conflictos y resolución, backupDir).
 
@@ -26,6 +29,7 @@ desarrollado** (overrides, módulos, datos). Envuelve `system/console/core-updat
 - No commitea/pushea sin permiso.
 
 ## Ejemplos
+- `/actualizar-core latest` (usa `CORE_UPDATE_URL` → `latest.json`)
 - `/actualizar-core ../nsSkeleton-core-1.15.0.zip`
 - `/actualizar-core https://misitio/downloads/nsSkeleton-core-1.15.0.zip`
 

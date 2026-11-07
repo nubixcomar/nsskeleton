@@ -1,7 +1,7 @@
 # Walkthrough — <feature/tarea>
 
 **Fecha y hora:** YYYY-MM-DD HH:MM | **Agente:** <agente> | **Modelo:** <modelo>
-**Sprint:** <Sn> | **Versión:** <x.y.z>
+**Sprint:** <Sn> | **Versión:** <x.y.z> | **Trazas:** <RM-NNN> · <BR-NNN> · <PL-NNN/Fn> (o —)
 
 ---
 

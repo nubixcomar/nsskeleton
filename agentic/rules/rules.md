@@ -23,6 +23,19 @@
 - Logging y trazabilidad: [`../methodology/logging.md`](../methodology/logging.md).
 - Bugs: [`../methodology/bug-tracking.md`](../methodology/bug-tracking.md).
 - Sprints y DoD: [`../methodology/sprints.md`](../methodology/sprints.md).
+- Flujo Roadmap → Brief → Plan: [`../methodology/roadmap-brief-plan.md`](../methodology/roadmap-brief-plan.md).
+
+## 2b. Filosofía de trabajo: entender → decidir → codear (RM → BR → PL)
+- Todo trabajo de tamaño **M** o mayor se implementa **desde un plan** (`PL-`). Tamaño **L/XL**
+  además requiere iniciativa en el roadmap (`RM-`) y brief (`BR-`). XS/S (bugs, ajustes) no.
+- Antes de codear algo M+ sin plan, el agente **sugiere** la fase que falta (`/brief new`,
+  `/plan new`) con el comando listo. Si el humano decide seguir igual, se registra la excepción
+  (`origin`/`exception` del plan) y se avanza. **Sugerir, no bloquear; saltear sí, ocultar no.**
+- **Pensar caro, ejecutar barato**: brief y plan con el modelo más capaz y esfuerzo alto/máximo;
+  la ejecución de un plan aprobado, con un modelo estándar. Si el ejecutor necesita "pensar
+  mucho", el plan está incompleto: se para y se re-planifica.
+- Los índices `planning/{roadmap,briefs,plans}/INDEX.md` son la fuente de verdad de qué se
+  hace, por qué y cómo. Cada cambio de estado se refleja en el archivo **y** en su índice.
 
 ## 3. Sistema de skills
 - Consultar [`../agents/INDEX.md`](../agents/INDEX.md) (core) y `../../app-agentic/agents/`

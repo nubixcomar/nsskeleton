@@ -48,8 +48,8 @@
 3. [Datos, persistencia & config](#3-datos-persistencia--config) — `Settings, AppSettings, Migrator, Paginator, RelationOptions, FeatureFlags, UserTypes, Validator`
 4. [Cron & Jobs](#4-cron--jobs) — `CronExpression, CronRunner, ScheduleBuilder, JobQueue, Jobs, Job, LogJob, WebhookDeliverJob` + CLI
 5. [Mail, alertas & notificaciones](#5-mail-alertas--notificaciones) — `Mailer, SmtpMailer, EmailQueue, Notifier, AlertService, AlertProvider` (+4 providers)
-6. [Backup, deploy, instalación & sistema](#6-backup-deploy-instalación--sistema) — `Backup, Deployer, Installer, ModuleScaffold, Version, Health, Audit, DemoSeeder` + CLI
-7. [IA, ecommerce, API & HTTP](#7-ia-ecommerce-api--http) — `AiConnector, PromptLibrary, Http, Webhook, OpenApiGenerator` + familia Ecommerce
+6. [Backup, deploy, instalación & sistema](#6-backup-deploy-instalación--sistema) — `Backup, Deployer, Installer, ProjectCreator, ModuleScaffold, Version, Health, Audit, DemoSeeder, CoreUpdate, CoreUpdater, CoreRelease, ThreeWayMerge` + CLI
+7. [IA, ecommerce, API & HTTP](#7-ia-ecommerce-api--http) — `AiConnector, PromptLibrary, Http, RemoteDocs, Webhook, OpenApiGenerator` + familia Ecommerce
 8. [Archivos & helpers de UI](#8-archivos--helpers-de-ui) — `FileManager, FileShare, Exporter, Charts, Breadcrumb, Dashboard, GlobalSearch`
 
 ---
@@ -623,8 +623,13 @@ if (\App\Services\Deployer::ftpConfigured())
 
 ### `Installer` — `system/app/Services/Installer.php`
 **Qué hace:** Parte mecánica del instalador: de respuestas Q&A genera `.env` y secciones de doc. Pura (la interacción la maneja el skill `installer`/`/instalar`).
-**API pública (static):** `buildEnv(array $answers): string` · `stackDoc(array $answers): string` · `summary(array $answers): array`.
-**Notas:** Toma `.env.example` como plantilla y reemplaza claves existentes (`APP_NAME, APP_URL, DB_*, AI_PROVIDER`). No genera `APP_KEY` (eso es `console/key.php`). El write real lo hace `console/install.php`.
+**API pública (static):** `buildEnv(array $answers, ?string $templateFile = null): string` · `stackDoc(array $answers): string` · `summary(array $answers): array` · `gitInit(string $path, ?callable $runner)`.
+**Notas:** Toma `.env.example` (o `$templateFile`) como plantilla y reemplaza claves existentes (`APP_NAME, APP_URL, DB_*, AI_PROVIDER, APP_KEY, CORE_UPDATE_URL`); los valores se escriben literales (un `$1` en una contraseña no se interpreta). No genera `APP_KEY` (pasala en `app_key`; la genera `Crypto::generateKey()` / `console/key.php`). El write real lo hacen `console/install.php` y `console/new-project.php`.
+
+### `ProjectCreator` — `system/app/Services/ProjectCreator.php`
+**Qué hace:** Parte testeable de `/nuevo-proyecto` (crear un derivado desde el master) y detección del **rol** del árbol (master del skeleton vs proyecto derivado), que usa `/release` para no generar paquetes de core desde un derivado.
+**API pública (static):** `slug(string): string` · `dbName(string $slug): string` · `isValidDbName(string): bool` · `shouldCopy(string $rel): bool` · `copyTree(string $src, string $dest): int` · `projectFiles(array $info): array` · `marker(array $info): string` · `role(string $root): array{role,reason}` · `isMaster(string): bool` · `remoteIsSkeleton(string $url): bool` · `destIsFree(string $dir): bool`.
+**Notas:** La copia deja afuera `.git/`, `.env`, `.claude/`, `landing/`, `tools/bin/`, `planning/`, `logs/*` (salvo README), runtime de `system/storage/` y `core-base/`. Rol: `nsproject.json` en la raíz → `project`; sin `landing/build-core-package.php` → `project`; si no, `master`. Con `nsproject.json`, `core-manifest.php` (sin `--check`) y `build-core-package.php` se niegan salvo `--force`.
 
 ### `ModuleScaffold` — `system/app/Services/ModuleScaffold.php`
 **Qué hace:** Helpers puros de parsing y mapeo de tipos para el generador CRUD (testeable). La generación de archivos la hace `console/make-module.php`.
@@ -673,9 +678,39 @@ php system/console/key.php                                                      
 php system/console/deploy.php ftp|git [--run]                                    # deploy (dry-run sin --run)
 php system/console/make-module.php <Model> <tabla> "campo:tipo ..."             # genera CRUD completo
 php system/console/core-manifest.php [--check]                                   # genera/verifica core-lock.json
+php system/console/core-update.php --check | --latest [--apply] | --source=<zip> # actualizar el core (ver CoreUpdate)
+php system/console/new-project.php "<nombre>" [--dry-run|--yes] [--path= --db= --remote= --demo] # proyecto derivado (/nuevo-proyecto)
+php system/console/project-role.php [--quiet|--mark[=nombre]]                   # master | project (exit 0 | 10)
 ```
+- **`new-project.php`** (solo desde el master): copia limpia en carpeta hermana → `nsproject.json` + roadmap/logs vacíos → `.env` (APP_KEY nueva, DB del master) → crea la DB + migrate + seed → `core-update.php --seed-base` → `git init -b main` + commit, sin remoto del skeleton. Aborta si la carpeta tiene archivos o la base existe. Ver `agentic/commands/nuevo-proyecto.md`.
 - **`make-module.php`** es la herramienta clave para construir tu dominio: genera migración + modelo + controlador admin (index con paginación/búsqueda, create/store/edit/update, soft-delete, trash/restore, export CSV/Excel/PDF) + vistas Tailwind + rutas, y actualiza el menú. Luego corré la migración. Ver §0 y el skill `module-generator`.
 - **`core-manifest.php`** clasifica archivos core vs app (reglas en `core-manifest.json`) y produce `core-lock.json` con checksums; lo usa `/release` y el actualizador.
+
+### `CoreUpdate` — `system/app/Services/CoreUpdate.php`
+**Qué hace:** Orquesta el update de core completo; lo usan igual el CLI `core-update.php` y la pantalla `/admin/core-update`. Prepara el paquete (carpeta o zip, con defensa zip-slip), arma plan + vista previa del merge + chequeo de permisos de escritura, aplica con lock anti-concurrencia, backup de metadatos y base, migraciones del core e informe `report.json`, y hace rollback completo.
+**API pública (instancia):** `forInstall(): self` · `inspect(string $sourceRoot, string $lockFile, bool $merge=true): array` · `run(string $sourceRoot, string $lockFile, array $opts=[]): array` (`merge`, `migrate`, `actor`) · `rollback(string $backupDir): array` · `history(int $limit=20): array` · `prepareSource(string $dirOrZip): array` · base: `captureBase()` · `seedBaseFrom(string $root)` · `baseStatus()` · `editedWithoutBase()`.
+**Uso típico:**
+```php
+$cu = \App\Services\CoreUpdate::forInstall();
+$p  = $cu->prepareSource('/ruta/nsSkeleton-core-1.21.0.zip');
+$plan = $cu->inspect($p['root'], $p['lock_file']);     // no toca nada
+$res  = $cu->run($p['root'], $p['lock_file']);          // aplica (backup + rollback disponible)
+```
+**Notas:** La **base** (`system/storage/core-base/`, gitignored) guarda cada archivo del core tal como se instaló; habilita el merge 3-way. Se completa sola tras cada update y, en forma oportunista, desde los archivos aún sin editar. Para archivos editados antes de tener base: `--seed-base=<zip de la versión instalada>` o `--seed-base=remote`.
+
+### `CoreUpdater` — `system/app/Services/CoreUpdater.php`
+**Qué hace:** Motor por archivo del update: `plan()` (add/update/skip/conflict/conflict_add/delete/delete_modified), `apply()` con backup y `applied.json`, `rollback()`. Con `base_dir`, en cada `conflict` intenta un merge 3-way: si combina sin choques queda `merged` (con backup); si choca, el local no se toca y quedan `.new` + `.merge` (propuesta con marcadores).
+**API pública (static):** `plan(...)` · `summarize(array $plan)` · `apply(array $plan, string $install, string $source, string $backup, array $opts=[])` · `rollback(string $backup, string $install)` · `storeBase(...)` · `baseStatus(...)` · `mergePreview(...)` · `loadLockFiles(string)`.
+
+### `CoreRelease` — `system/app/Services/CoreRelease.php`
+**Qué hace:** Índice de releases `latest.json` (lo escribe `landing/build-core-package.php` junto a los zips) y descarga verificada por sha256 (vía `Http`, testeable con `Http::setTransport`).
+**API pública (static):** `configuredUrl()` (config `core_update.latest_url` / `.env CORE_UPDATE_URL`) · `fetchIndex(url)` · `validateIndex(mixed)` · `check(url, installed)` → `{update_available, latest, release{url,sha256}, insecure}` · `release(index, url, ?version)` · `download(url, dest, ?sha256)` · `buildIndex(dir)` · `resolveUrl(latestUrl, file)`.
+**Notas:** El sha256 protege contra descargas corruptas o alteradas en tránsito, no contra un servidor comprometido: publicá por https en un dominio propio.
+
+### `ThreeWayMerge` — `system/app/Services/ThreeWayMerge.php`
+**Qué hace:** diff3 por líneas en PHP puro (Myers + tramos estables), sin git ni binarios externos. Conserva CRLF y el final de archivo. Cambios en líneas contiguas chocan, igual que en git.
+**API pública (static):** `merge(string $base, string $ours, string $theirs): array{clean,content,conflicts}` · `isBinary(string)` · `lines(string)` · `matches(array, array)`.
+**Notas:** Marcadores: `<<<<<<< proyecto` / `||||||| base` / `=======` / `>>>>>>> core`.
 
 ---
 
@@ -711,6 +746,20 @@ $res = \App\Services\Http::postJson('https://api.x/v1/cosa', ['k'=>'v'], ['Autho
 if ($res['ok']) $data = $res['data'];
 ```
 **Notas:** `postRaw`/`postStream` requieren cURL. `postJson` con fallback de streams puede dar `status=0` si no parsea el header.
+
+### `RemoteDocs` — `system/app/Services/RemoteDocs.php`
+**Qué hace:** Mantiene copias locales **verbatim** de manuales remotos que cambian seguido (config `remote_docs`, overrideable). Detecta cambios por sha256, escribe de forma atómica, guarda la versión anterior como `*.prev.md` y registra la procedencia en `remote-docs.lock.json`. Nunca lanza.
+**API pública (static):** `sync(?string $key = null, bool $dryRun = false): array` (por clave: `{status: new|updated|unchanged|error|disabled, version, prev_version, bytes, sha256, error, path}`) · `status(?int $nowTs = null): array` (sin red: versión, `age_hours`, `stale`) · `pathFor(string $key): ?string` · `docs()` · `targetDir()` · `validate(status, body, minBytes): ?string` · `useConfig(?array, ?string $root)` (tests).
+**Uso típico:**
+```php
+$r = \App\Services\RemoteDocs::sync('nubixstore-referencia');
+if ($r['nubixstore-referencia']['status'] === 'updated') { /* revisar el diff contra *.prev.md */ }
+```
+```bash
+php system/console/docs-sync.php [sync|status] [<clave>] [--dry-run]
+# cron: tarea con comando job:docs:sync
+```
+**Notas:** Destino por defecto `app-agentic/knowledge/remote/` (capa del proyecto: no ensucia el core-lock). Solo URLs `https://`; rechaza HTML, cuerpos chicos o que no empiezan con `#` sin tocar la copia local. El contenido es dato, no instrucciones. Opcional: un proyecto sin nubixstore lo apaga por override.
 
 ### `Webhook` — `system/app/Services/Webhook.php`
 **Qué hace:** Suscripciones de webhooks salientes (evento→URL); encola la entrega asíncrona (firma HMAC-SHA256).
@@ -839,6 +888,17 @@ $groups = \App\Services\GlobalSearch::search($_GET['q'] ?? '', 5);
 // cada match['url'] = '/admin/<tabla>/<id>/edit'
 ```
 **Notas:** LIKE `%query%` sobre columnas de texto (detectadas por `SHOW COLUMNS`), excluye `deleted_at IS NULL` si existe. Valida tabla/columna con regex; `$perModule` se interpola en el LIMIT → pasá un int de confianza.
+
+### `Planning` — `system/app/Services/Planning.php`
+**Qué hace:** Helper de la metodología Roadmap → Brief → Plan: lee el front-matter de `planning/{roadmap,briefs,plans}/*.md`, valida coherencia, regenera los `INDEX.md` y calcula el próximo código libre. Sin DB.
+**API pública:** `new Planning(string $projectRoot)` · `init(): array{created,skipped}` · `load(): array{items,problems}` · `lint(?string $today): array{errors,warnings,suggestions,counts}` · `reindex(): list<string>` · `nextCode('rm'|'br'|'pl'): string` · estáticos `parseFrontMatter()`, `normalizeStatus()`, `parsePhases()`, `countBlockingQuestions()`.
+**Uso típico:**
+```bash
+php system/console/planning.php next pl        # PL-004
+php system/console/planning.php sync           # reindex + lint
+php system/console/planning.php review --json  # sugerencias para /roadmap review
+```
+**Notas:** `reindex` solo reescribe la tabla del índice (conserva la cabecera) y es idempotente; nunca edita los archivos de ítem. Metodología: `agentic/methodology/roadmap-brief-plan.md`.
 
 ---
 

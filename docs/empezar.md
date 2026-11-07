@@ -60,9 +60,15 @@ Una vez completado el brief, cualquier IA arranca leyendo **`AGENTS.md`**, que l
 
 ## Paso 3 — El ciclo de desarrollo
 ```
-brief → /sprint open → /nuevo-modulo (entidades) → agentes implementan features
-      → tests verdes → walkthrough → /sprint close → /release <version> → /deploy
+docs/brief.md (maestro) → /roadmap init
+  → /roadmap new (RM-)  → /brief new (BR-, indagación)  → /plan new (PL-, modelo más capaz)
+  → /plan review → /plan approve → /sprint open → /plan run (fase por fase, modelo estándar)
+  → tests verdes → walkthrough → /plan close → /sprint close → /release <version> → /deploy
 ```
+- **Roadmap → Brief → Plan** es la forma de trabajar para todo lo **mediano o grande**: primero
+  se entiende el problema (brief), después se decide cómo (plan), al final se codea. Ver
+  [`agentic/methodology/roadmap-brief-plan.md`](../agentic/methodology/roadmap-brief-plan.md).
+  Para urgencias, `/plan new "…" --origen urgencia` (se regulariza después); para bugs chicos, `/fix`.
 - **Bugs**: `/bug` detecta, `/fix` corrige (ciclo OPEN→DONE, ver `agentic/methodology/bug-tracking.md`).
 - **Calidad**: `/audit` (seguridad+performance), `/test` (suite).
 - **Versionado y publicación**: `/release` (changelog + paquete), `/deploy` (FTP/git).

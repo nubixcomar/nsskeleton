@@ -26,6 +26,8 @@ nsSkeleton separa **core** (lo que mantiene/actualiza el framework) de **proyect
    - [`logging.md`](agentic/methodology/logging.md) — trazabilidad obligatoria de cada agente.
    - [`bug-tracking.md`](agentic/methodology/bug-tracking.md) — ciclo de vida de bugs.
    - [`sprints.md`](agentic/methodology/sprints.md) — sprints y Definición de Hecho.
+   - [`roadmap-brief-plan.md`](agentic/methodology/roadmap-brief-plan.md) ⭐ — **filosofía de
+     trabajo**: Roadmap (`RM-`) → Brief (`BR-`) → Plan (`PL-`) → código. Índices en `planning/`.
 3. **Contexto del proyecto** → [`docs/`](docs/)
    - [`brief.md`](docs/brief.md) (qué se construye), [`stack.md`](docs/stack.md),
      [`roadmap.md`](docs/roadmap.md), [`architecture.md`](docs/architecture.md).
@@ -40,11 +42,26 @@ nsSkeleton separa **core** (lo que mantiene/actualiza el framework) de **proyect
 Core (`agentic/`) — buscá primero en el proyecto (`app-agentic/`), que tiene prioridad:
 - **Agentes** → [`agentic/agents/INDEX.md`](agentic/agents/INDEX.md) · proyecto: `app-agentic/agents/`
 - **Skills** → [`agentic/skills/`](agentic/skills/) (`{nombre}/SKILL.md`) · proyecto: `app-agentic/skills/`
-- **Comandos** → [`agentic/commands/`](agentic/commands/)
+- **Comandos** → [`agentic/commands/`](agentic/commands/) (incluye `/roadmap`, `/brief`, `/plan`)
 - **Plantillas** → [`agentic/templates/`](agentic/templates/) · proyecto: `app-agentic/templates/`
 - **Knowledge** → [`agentic/knowledge/`](agentic/knowledge/) · proyecto: `app-agentic/knowledge/`
 - **Adapter del stack actual** → [`agentic/adapters/`](agentic/adapters/)
 - **Capa del proyecto** → [`app-agentic/`](app-agentic/) (reglas, agentes, skills, knowledge, módulos)
+
+## Cómo se trabaja: entender → decidir → codear
+
+Para implementaciones **medianas o grandes**, nsSkeleton sigue el flujo
+**`/roadmap` → `/brief` → `/plan` → `/plan run`** (alias `/rm`, `/br`, `/pl`):
+- **Roadmap** (`planning/roadmap/`): qué y cuándo (iniciativas `RM-` con fechas tentativas).
+- **Brief** (`planning/briefs/`): por qué y para quién; agentes curiosos preguntan hasta que no
+  queden dudas (`BR-`).
+- **Plan** (`planning/plans/`): cómo, casi pseudocódigo, por fases ejecutables (`PL-`).
+  **Planificá con el modelo más capaz y esfuerzo máximo; ejecutá el plan con menos.**
+
+Si te piden algo M+ sin plan, **sugerí** la fase que falta antes de codear. Urgencias e
+imprevistos pueden saltear fases: se registra y se regulariza después. Detalle:
+[`agentic/methodology/roadmap-brief-plan.md`](agentic/methodology/roadmap-brief-plan.md).
+Si `planning/` no existe todavía, se crea con `/roadmap init`.
 
 ## Regla no negociable
 

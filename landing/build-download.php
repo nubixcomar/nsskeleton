@@ -4,10 +4,11 @@ declare(strict_types=1);
 
 /**
  * Genera el paquete descargable de nsSkeleton en landing/downloads/.
- *   php landing/build-download.php
+ *   php landing/build-download.php [--out=<dir>]
  *
- * Excluye secretos (.env), runtime de storage, vendor/node_modules/.git y la
- * propia carpeta de descargas. Empaqueta todo bajo una carpeta raíz versionada.
+ * Excluye secretos (.env), runtime de storage (incluidas sesiones y la base del merge),
+ * vendor/node_modules/.git y la propia carpeta de descargas. Empaqueta todo bajo una
+ * carpeta raíz versionada. --out: carpeta de salida (default landing/downloads).
  */
 
 if (PHP_SAPI !== 'cli') {
@@ -24,6 +25,11 @@ $projectPath = str_replace('\\', '/', dirname(__DIR__));
 $version = trim(@file_get_contents($projectPath . '/VERSION') ?: '') ?: '1.0.0';
 
 $outDir = __DIR__ . '/downloads';
+foreach (array_slice($argv, 1) as $arg) {
+    if (str_starts_with($arg, '--out=') && $arg !== '--out=') {
+        $outDir = rtrim(substr($arg, 6), '/\\');
+    }
+}
 @mkdir($outDir, 0775, true);
 $outFile = $outDir . '/nsSkeleton-' . $version . '.zip';
 $prefix = 'nsSkeleton-' . $version . '/';
@@ -35,6 +41,9 @@ if ($zip->open($outFile, ZipArchive::CREATE | ZipArchive::OVERWRITE) !== true) {
 }
 
 $excludes = ['/.git/', '/vendor/', '/node_modules/', '/landing/downloads/', '/tools/bin/'];
+// planning/ (raíz) es el roadmap/briefs/planes del PROPIO skeleton: un proyecto nuevo arranca vacío
+// (/roadmap init). Solo la raíz: agentic/templates/planning/ (el scaffold) sí se empaqueta.
+$rootExcludes = ['planning/'];
 
 $iterator = new RecursiveIteratorIterator(
     new RecursiveDirectoryIterator($projectPath, FilesystemIterator::SKIP_DOTS)
@@ -57,12 +66,22 @@ foreach ($iterator as $entry) {
             continue 2;
         }
     }
-    // Excluir contenido de runtime de storage, pero conservar los .gitkeep.
-    if (preg_match('#/storage/(backups|cache|uploads|logs)/#', $abs) && basename($abs) !== '.gitkeep') {
+    // Excluir contenido de runtime de storage, pero conservar los .gitkeep. Incluye las sesiones
+    // (datos de sesión de admins: nunca deben viajar) y la base del merge del actualizador
+    // (es del master; el proyecto captura la suya). Mismo criterio que ProjectCreator.
+    if (preg_match('#/system/storage/(backups|cache|uploads|logs|sessions)/#', $abs) && basename($abs) !== '.gitkeep') {
+        continue;
+    }
+    if (str_contains($abs, '/system/storage/core-base/')) {
         continue;
     }
 
     $rel = ltrim(str_replace($projectPath, '', $abs), '/');
+    foreach ($rootExcludes as $rx) {
+        if (str_starts_with($rel, $rx)) {
+            continue 2;
+        }
+    }
     $zip->addFile($entry->getPathname(), $prefix . $rel);
     $count++;
 }

@@ -12,11 +12,28 @@ Guía rápida para poner en marcha un proyecto basado en nsSkeleton.
 repo; es la fuente del core y la que genera paquetes). Cada proyecto vive en **su propia carpeta**,
 con copia limpia y git propio.
 
+### Forma rápida: `/nuevo-proyecto` (recomendada)
+
+Desde el master, todo en un paso (copia limpia + `.env` + base creada y migrada + git propio sin
+remoto del skeleton):
+```bash
+cd c:/xampp/htdocs/skeleton
+php system/console/new-project.php "Jardín Botánico" --dry-run    # muestra el plan, no toca nada
+php system/console/new-project.php "Jardín Botánico" --yes        # → c:/xampp/htdocs/jardin-botanico, base jardin_botanico
+#   opciones: --path= --db= --url= --remote=<tu-repo> --demo --no-db --no-git --strict
+```
+Con tu IA: `/nuevo-proyecto` (ver [`agentic/commands/nuevo-proyecto.md`](../agentic/commands/nuevo-proyecto.md)).
+Después abrí la carpeta nueva y corré `/instalar`. **Antes**, si el master tiene cambios sin
+publicar, corré `/release` en el master: el proyecto hereda su `VERSION` y `core-lock.json`, que
+son la base de `/actualizar-core`.
+
+### Forma manual (lo que hace el comando, paso a paso)
+
 **1) Copia limpia** — elegí una:
 ```bash
 # Opción A — clonar y cortar el vínculo con el repo del skeleton:
 git clone https://github.com/nubixcomar/nsskeleton.git c:/xampp/htdocs/miproyecto
-cd c:/xampp/htdocs/miproyecto && rm -rf .git
+cd c:/xampp/htdocs/miproyecto && rm -rf .git planning   # planning/ = roadmap del skeleton, no del proyecto
 
 # Opción B — desde el paquete oficial (ya excluye .git, .env, tools/bin, downloads, runtime):
 #   en el master:  php landing/build-download.php   → landing/downloads/nsSkeleton-<version>.zip
@@ -48,7 +65,8 @@ git init && git add -A && git commit -m "init miproyecto desde nsSkeleton"
 del core: `/actualizar-core <zip|url>` y tu trabajo queda intacto (ver [`CORE-UPDATE.md`](CORE-UPDATE.md)).
 
 > Luego seguí con los pasos 1–6 de abajo (entorno, DB, levantar) y con [`empezar.md`](empezar.md)
-> para el ciclo de desarrollo (brief → sprints → módulos → release).
+> para el ciclo de desarrollo (roadmap → brief → plan → sprints → release). Inicializá los índices
+> de planificación con `/roadmap init` (crea `planning/`).
 
 ---
 

@@ -15,6 +15,10 @@ use Core\Request;
 group('Cron master · configuración');
 
 itDb('deshabilitado por defecto', function () {
+    // "Por defecto" = sin la clave guardada. La instancia local puede tener el cron master
+    // activado de verdad: se quita la clave dentro de la transacción (itDb hace rollback),
+    // así el test no depende de los datos de la DB y no toca la configuración real.
+    \Core\Database::connection()->prepare('DELETE FROM settings WHERE `key` = ?')->execute(['cron.master_enabled']);
     Settings::flush();
     assertFalse(CronMaster::enabled());
 });

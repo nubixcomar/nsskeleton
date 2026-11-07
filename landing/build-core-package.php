@@ -13,6 +13,10 @@ declare(strict_types=1);
  *   --out=<dir>   Carpeta de salida (default: landing/downloads).
  *   --regen       Regenera core-lock.json antes de empaquetar (recomendado en /release).
  *
+ * Además escribe `latest.json` (índice de releases con sha256) en la carpeta de salida.
+ * Subilo al landing junto con el zip: los proyectos lo leen con
+ * `core-update.php --check|--latest` o desde /admin/core-update (CORE_UPDATE_URL).
+ *
  * A diferencia de `build-download.php` (zip COMPLETO: core + app + demo), este
  * trae SOLO el core, para un update limpio que no pisa lo del proyecto.
  */
@@ -34,6 +38,13 @@ foreach (array_slice($argv, 1) as $arg) {
     if (preg_match('/^--([^=]+)(?:=(.*))?$/', $arg, $m)) {
         $opts[$m[1]] = $m[2] ?? true;
     }
+}
+
+// Solo el master publica core: un derivado (nsproject.json) empaquetaría su app como "core".
+if (is_file($projectPath . '/nsproject.json') && !isset($opts['force'])) {
+    fwrite(STDERR, "Este árbol es un proyecto derivado (nsproject.json): el paquete de core se genera\n"
+        . "solo desde el master del skeleton. (--force para forzarlo)\n");
+    exit(1);
 }
 
 // Regenerar el lock si se pide (que refleje el árbol exacto que se publica).
@@ -89,6 +100,17 @@ $count++;
 $zip->close();
 
 printf("OK: %s\n  core %s · %d archivos · %d KB\n", $outFile, $version, $count, (int) round(filesize($outFile) / 1024));
+
+// Índice de releases (latest.json) junto a los zips: lo usan `core-update.php --check|--latest`
+// y la pantalla /admin/core-update. Se recalcula siempre desde los zips presentes en disco.
+require_once $projectPath . '/system/app/Services/CoreRelease.php';
+$index = \App\Services\CoreRelease::buildIndex($outDir);
+file_put_contents(
+    $outDir . '/latest.json',
+    json_encode($index, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE) . "\n"
+);
+printf("  latest.json → %s (%d release(s))\n", $index['latest'], count($index['releases']));
+
 if ($missing !== []) {
     fwrite(STDERR, "AVISO: " . count($missing) . " archivo(s) del lock no existen (lock desfasado). Regenerá con --regen.\n");
     foreach (array_slice($missing, 0, 10) as $m) {

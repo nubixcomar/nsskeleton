@@ -183,6 +183,15 @@ return static function (Router $router): void {
     $router->post('/admin/backup/restore', 'Admin\BackupController@restore');
     $router->post('/admin/backup/delete', 'Admin\BackupController@destroy');
 
+    // Actualización de core desde el panel (v1.20). Permiso core.update; CORE_UPDATE_UI=false la apaga.
+    $router->get('/admin/core-update', 'Admin\CoreUpdateController@index');
+    $router->post('/admin/core-update/check', 'Admin\CoreUpdateController@check');
+    $router->post('/admin/core-update/prepare', 'Admin\CoreUpdateController@prepare');
+    $router->post('/admin/core-update/apply', 'Admin\CoreUpdateController@apply');
+    $router->post('/admin/core-update/rollback', 'Admin\CoreUpdateController@rollback');
+    $router->post('/admin/core-update/discard', 'Admin\CoreUpdateController@discard');
+    $router->post('/admin/core-update/seed-base', 'Admin\CoreUpdateController@seedBase');
+
     // --- Rutas de la APP (punto de extensión, no se pisa al actualizar el core) ---
     // Definí rutas propias en config/routes.app.php devolviendo `fn(Router $router) => ...`.
     // Se cargan AL FINAL, después de TODAS las del core: si repetís un método+ruta, la de la

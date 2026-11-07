@@ -50,6 +50,22 @@ Asistido (recomendado): el comando `/actualizar-core <dir|zip|url>` (agente `cor
 hace dry-run, te explica el plan y los conflictos, aplica con backup, resuelve los `.new` y
 corre la suite.
 
+Desde el panel (v1.20): **Sistema → Actualizar core** (`/admin/core-update`, permiso
+`core.update`, por defecto solo superadmin). Flujo: *Buscar versión nueva* → *Preparar*
+(descarga + verificación sha256 + plan con vista previa del merge) → *Aplicar* (confirmás
+escribiendo la versión) → *Revertir* desde el historial si hace falta. Se apaga con
+`CORE_UPDATE_UI=false`. En hostings con límite de tiempo corto o sin permisos de escritura
+sobre el código, usá la consola: la pantalla avisa antes de aplicar si no puede escribir.
+
+Con `latest.json` (v1.20) — configurá en `.env` la URL del índice que publica el landing:
+
+```bash
+# CORE_UPDATE_URL=https://misitio/downloads/latest.json
+php system/console/core-update.php --check            # ¿hay versión nueva? (exit 3 = sí)
+php system/console/core-update.php --latest           # baja la última (sha256 verificado) + DRY-RUN
+php system/console/core-update.php --latest --apply   # aplica
+```
+
 Manual (CLI):
 
 ```bash
@@ -90,15 +106,45 @@ Solo se tocan archivos del core. Tus overrides, módulos, migraciones de app y d
 
 ---
 
-## 5. Conflictos: cómo resolverlos
+## 5. Conflictos: merge 3-way y resolución
 
-Un conflicto significa que editaste un archivo del core. Tras `--apply`, tenés
-`archivo` (tu versión) y `archivo.new` (el core nuevo):
+Un conflicto significa que editaste un archivo del core. Desde v1.20 el updater intenta
+**combinar solo** tu versión con la nueva, usando como referencia el original que instalaste
+(merge 3-way, en PHP puro, sin depender de git):
 
-1. Mirá el diff entre ambos.
-2. Mergeá a mano lo que necesites en `archivo` y **borrá** `archivo.new`.
+| Resultado del merge | Qué queda |
+|---|---|
+| **Se combina solo** (tus cambios y los del core no se pisan) | `archivo` ya combinado (con backup para rollback). Revisalo y corré la suite. |
+| **Con choques** (ambos cambiaron las mismas líneas) | `archivo` intacto + `archivo.new` (core nuevo) + `archivo.merge` (propuesta con marcadores `<<<<<<< proyecto` / `||||||| base` / `=======` / `>>>>>>> core`). |
+| **Sin original** guardado, o archivo binario | `archivo` intacto + `archivo.new` (comportamiento clásico). |
+
+El DRY-RUN y la pantalla muestran de antemano cuál de los tres casos le toca a cada archivo.
+`--no-merge` (o `core_update.merge=false`) desactiva el merge.
+
+Para resolver un choque:
+
+1. Partí del `.merge` (o del diff entre `archivo` y `archivo.new`) y dejá el resultado en `archivo`.
+2. **Borrá** `archivo.new` y `archivo.merge`.
 3. **Mejor aún**: mové tu cambio a un override (sección 2) para que el próximo update sea
    limpio y no vuelva a conflictuar.
+
+### La base del merge (`system/storage/core-base/`)
+
+Para mergear hace falta el **original** de cada archivo tal como lo envió el core (el lock
+solo guarda hashes). El updater lo mantiene en `system/storage/core-base/` (gitignored):
+
+- Tras cada update, la base pasa a ser el core nuevo completo.
+- Además se **captura sola** (cada vez que corrés el updater o abrís la pantalla) desde los
+  archivos del core que todavía no editaste. Un archivo solo entra a la base si su sha256
+  coincide con el del lock, así nunca se guarda como "original" una versión editada.
+- Si editaste archivos del core **antes** de tener base (por ejemplo, un proyecto que viene
+  de v1.19 o anterior), completalos desde el paquete de tu versión instalada:
+  `--seed-base=<zip de esa versión>` o `--seed-base=remote` (lo baja de `latest.json`), o el
+  botón *Completar originales desde el landing* del panel.
+- `--seed-base` sin valor muestra el estado: cuántos originales hay y qué archivos editados no tienen.
+
+> Un proyecto en v1.19 o anterior hace su primer update a v1.20 con el updater viejo (sin
+> merge), porque el que corre es el instalado. El merge se aprovecha desde el update siguiente.
 
 Para la capa agéntica: si tu `app-agentic/` sombrea un skill/agente del core que cambió,
 revisá que el override siga teniendo sentido con la versión nueva.
@@ -107,9 +153,11 @@ revisá que el override siga teniendo sentido con la versión nueva.
 
 ## 6. Rollback
 
-`--apply` respalda todo lo que toca en `system/storage/backups/core-update-<ts>/` y escribe un
-`applied.json`. `--rollback=<esa carpeta>` restaura pisados/borrados, quita agregados y limpia
-los `.new`. Tu código (lo de la app) nunca se tocó, así que el rollback solo revierte el core.
+`--apply` respalda todo lo que toca en `system/storage/backups/core-update-<ts>/` y escribe
+`applied.json` + `report.json`. `--rollback=<esa carpeta>` restaura pisados, borrados y
+mergeados, quita agregados, limpia los `.new`/`.merge` y vuelve la base del merge a la versión
+anterior. Tu código (lo de la app) nunca se tocó, así que el rollback solo revierte el core.
+Desde el panel, el historial de updates tiene el botón *Revertir*.
 
 > Después de actualizar, **corré la suite** (`php tests/run.php`). Mantené el backup hasta
 > confirmar que quedó sano.
@@ -127,7 +175,11 @@ php landing/build-core-package.php --regen    # paquete de CORE → nsSkeleton-c
 ```
 
 El **paquete de core** es lo que consume el actualizador: trae solo los archivos del lock + el
-propio lock. Subilo al landing y el update puede tirarlo con `--url`.
+propio lock. `build-core-package.php` también escribe **`latest.json`** en la misma carpeta:
+el índice de todas las releases de core presentes (versión, archivo, sha256, tamaño), con la
+más nueva en `latest`. **Subí el zip y `latest.json` juntos** al landing; los proyectos apuntan
+`CORE_UPDATE_URL` a ese `latest.json`. Conservá los zips de versiones anteriores publicados:
+`--seed-base=remote` los usa para completar la base de proyectos en esas versiones.
 
 ---
 
@@ -138,8 +190,13 @@ propio lock. Subilo al landing y el update puede tirarlo con `--url`.
 | `core-manifest.json` | reglas de propiedad core/app |
 | `core-lock.json` | snapshot con sha256 de cada archivo core |
 | `system/console/core-manifest.php` | genera el lock (`--check` = drift) |
-| `App\Services\CoreUpdater` | motor: plan / apply / rollback |
-| `system/console/core-update.php` | CLI del actualizador (`--source/--url/--apply/--rollback`) |
-| `landing/build-core-package.php` | empaqueta el zip de core |
+| `App\Services\CoreUpdater` | motor: plan / apply / rollback / merge por archivo |
+| `App\Services\CoreUpdate` | orquestador (CLI y panel): paquete, base, permisos, lock, informe |
+| `App\Services\ThreeWayMerge` | merge 3-way (diff3) en PHP puro |
+| `App\Services\CoreRelease` | `latest.json` + descarga verificada por sha256 |
+| `system/console/core-update.php` | CLI (`--check/--latest/--source/--url/--sha256/--apply/--no-merge/--seed-base/--rollback`) |
+| `/admin/core-update` · `config/core_update.php` | pantalla del panel (permiso `core.update`) y su config |
+| `system/storage/core-base/` | originales del core instalado (base del merge) |
+| `landing/build-core-package.php` | empaqueta el zip de core + `latest.json` |
 | `/actualizar-core` · agente/skill `core-updater` | flujo asistido |
 | `Core\Config`, `routes.app.php`, `app/Views/overrides/`, `database/migrations/app/`, `app-agentic/` | puntos de extensión |

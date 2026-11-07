@@ -30,6 +30,7 @@ Al finalizar **cualquier** tarea, el agente produce:
   - Ej:
     ```
     [2026-06-22 14:30:11] [FIX] Login/Auth | corrige redirect tras login fallido (BUG-014) | modelo: claude-opus-4-8
+    [2026-06-22 16:05:40] [FEATURE] PL-012/F2 Turnos | servicio de reprogramación + reglas (BR-007, RM-004) | modelo: claude-sonnet-4-6
     ```
 - **Append-only**: jamás se edita ni se borra una línea previa.
 
@@ -83,6 +84,10 @@ Al terminar, el agente ejecuta SIEMPRE, en orden:
 3. [ ] Guardar informes/salidas y referenciarlos en el walkthrough (c).
 4. [ ] Si tocó bugs: actualizar `logs/bugs-resume.md` (ver
        [`bug-tracking.md`](bug-tracking.md)).
-5. [ ] Si completó/avanzó un feature: actualizar estado en `docs/roadmap.md`.
+5. [ ] Si completó/avanzó un feature: actualizar estado en el roadmap
+       (`planning/roadmap/INDEX.md`; `docs/roadmap.md` en proyectos legados).
+6. [ ] Si trabajó sobre un `RM-`/`BR-`/`PL-`: actualizar el archivo **y** su `INDEX.md`, y citar
+       los códigos en el walkthrough y en la línea de log (ej. `PL-012/F2`). Ver
+       [`roadmap-brief-plan.md`](roadmap-brief-plan.md).
 
 > Si un paso no aplica, se omite explícitamente; nunca se "saltea" sin razón.

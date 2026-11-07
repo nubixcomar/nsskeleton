@@ -15,6 +15,10 @@ el manejo de auth.
 - Registro de plataformas y esquema de credenciales: `system/config/ecommerce.php`.
 - Para **nubixstore**, adoptá además el skill [`nubixstore-api`](../nubixstore-api/SKILL.md)
   (conoce el manual completo y la versión de la API).
+- **Buenas prácticas de consumo de APIs** (manual remoto `buenas-practicas-api`, aplica a
+  cualquier plataforma: tokens, frecuencia, errores, base local, paginación):
+  `app-agentic/knowledge/remote/nubixstore/buenas-practicas-api.md`. Actualizalo antes con
+  `php system/console/docs-sync.php buenas-practicas-api`.
 
 ## Entrada
 - Plataforma destino (`nubixstore`, `shopify`, `tiendanube`, `woocommerce`, `magento`, u otra).

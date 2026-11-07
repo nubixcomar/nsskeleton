@@ -59,6 +59,20 @@ Para personalizar el core **sin editar sus archivos** (así el actualizador no p
 > Hoy leen vía `Core\Config` (overrideables): `app`, `features`. Hacer overrideable otra config
 > es cambiar su lectura a `Config::load(...)` en el servicio que la consume (1 línea).
 
+## Planning (metodología Roadmap → Brief → Plan)
+| Concepto genérico                       | Binding en este stack                                  |
+|-----------------------------------------|--------------------------------------------------------|
+| Carpeta de artefactos (proyecto)        | `planning/{roadmap,briefs,plans}/` (en `app_paths`)    |
+| Helper determinístico                   | `App\Services\Planning` + `php system/console/planning.php` |
+| Crear la carpeta (`/roadmap init`)      | `planning.php init`                                    |
+| Próximo código libre                    | `planning.php next <rm\|br\|pl>`                       |
+| Regenerar índices desde el front-matter | `planning.php reindex`                                 |
+| Validar coherencia (CI / fin de tarea)  | `planning.php lint [--strict]` (exit 1 si hay errores) |
+| Sugerencias de próxima fase (`/roadmap review`) | `planning.php review`                          |
+| Reindex + lint en un paso               | `planning.php sync`                                    |
+Todas aceptan `--json` (salida para agentes). La suite `tests/` corre `lint` sobre el `planning/`
+del proyecto: un error de estructura (código duplicado, vínculo roto, estado inválido) la pone en rojo.
+
 ## Conector de ecommerce (skills `ecommerce-integration` / `nubixstore-api`)
 | Concepto genérico              | Binding en este stack                                 |
 |--------------------------------|-------------------------------------------------------|

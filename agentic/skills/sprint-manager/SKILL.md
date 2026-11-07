@@ -9,7 +9,9 @@ Gestor de sprints: traduce el roadmap en sprints acotados y mantiene su estado.
 
 ## Entrada
 - Subcomando (`open`/`status`/`close`), identificador del sprint (`Sn`) y objetivo.
-- Roadmap (`docs/roadmap.md`) y metodología ([`../../methodology/sprints.md`](../../methodology/sprints.md)).
+- Roadmap (`planning/roadmap/INDEX.md` + `planning/plans/INDEX.md`; `docs/roadmap.md` en proyectos
+  legados) y metodología ([`../../methodology/sprints.md`](../../methodology/sprints.md),
+  [`../../methodology/roadmap-brief-plan.md`](../../methodology/roadmap-brief-plan.md)).
 
 ## Tarea
 1. **open**: crear `logs/sprints/<Sn>.md` desde
@@ -22,6 +24,8 @@ Gestor de sprints: traduce el roadmap en sprints acotados y mantiene su estado.
 ## Reglas
 - No marcar un ítem como ✅ si no cumple la Definición de Hecho (incluye tests).
 - Mantener plan del sprint y roadmap siempre sincronizados.
+- En `open`, priorizar `PL-` `👍 Aprobado`; si un ítem M+ no tiene plan, sugerir `/brief`/`/plan`
+  antes de meterlo al sprint.
 
 ## Salida
 - Plan del sprint actualizado + roadmap al día + walkthrough, según

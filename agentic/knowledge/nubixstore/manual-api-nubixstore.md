@@ -4,7 +4,12 @@
 
 > Este manual es la referencia completa de la API de **nubixstore**. Está pensado para que los agentes y desarrolladores integren o consuman endpoints sin necesidad de leer el código fuente. Mantenerlo actualizado es responsabilidad del agente `api-nubixstore`.
 >
-> **En nsSkeleton:** manual portado desde nsCentral; es la fuente de verdad del skill `nubixstore-api`. El driver que lo implementa en el stack por defecto (PHP MVC) es `App\Services\Ecommerce\NubixstoreConnector` (su constante `API_MANUAL_VERSION` debe coincidir con la **Versión** de arriba). El conector genérico multi-plataforma se documenta en [`../ecommerce/ecommerce-apis.md`](../ecommerce/ecommerce-apis.md).
+> ⚠ **HISTÓRICO (v2.1, abril 2026).** La fuente de verdad de endpoints y contratos es ahora la
+> **referencia viva** `app-agentic/knowledge/remote/nubixstore/referencia-api-nubixstore.md`
+> (al 2026-11-07, API 2.6.0), que se actualiza con `php system/console/docs-sync.php`. Este
+> manual queda por su contexto y sus trampas. Si contradice a la referencia, gana la referencia.
+>
+> **En nsSkeleton:** manual portado desde nsCentral; base del skill `nubixstore-api`. El driver que lo implementa en el stack por defecto (PHP MVC) es `App\Services\Ecommerce\NubixstoreConnector` (su constante `API_MANUAL_VERSION` debe coincidir con la **Versión** de arriba). El conector genérico multi-plataforma se documenta en [`../ecommerce/ecommerce-apis.md`](../ecommerce/ecommerce-apis.md).
 
 ---
 

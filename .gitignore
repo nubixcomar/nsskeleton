@@ -32,6 +32,8 @@
 !/system/storage/sessions/.gitkeep
 /system/storage/logs/*
 !/system/storage/logs/.gitkeep
+# Originales del core para el merge 3-way del actualizador (se regenera)
+/system/storage/core-base/
 *.log.tmp
 
 # --- Logs agénticos: se versionan walkthroughs e índices, no ruido temporal ---

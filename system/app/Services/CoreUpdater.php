@@ -23,6 +23,12 @@ namespace App\Services;
  *
  * `apply()` respalda todo lo que va a tocar en un backupDir y escribe `applied.json`
  * para poder hacer `rollback()`. Nunca lanza por archivo: acumula errores.
+ *
+ * Merge 3-way (v1.20): si se le pasa un `base_dir` (copia del core tal como se instaló,
+ * ver storeBase()), en cada `conflict` intenta combinar base/local/nuevo con
+ * ThreeWayMerge. Si no hay choques, el archivo local queda mergeado (acción `merged`,
+ * con backup). Si hay choques, el local no se toca: se deja `.new` (core nuevo) y
+ * `.merge` (resultado con marcadores de conflicto) para resolver a mano.
  */
 final class CoreUpdater
 {
@@ -33,6 +39,8 @@ final class CoreUpdater
     public const CONFLICT_ADD = 'conflict_add';
     public const DELETE = 'delete';
     public const DELETE_MODIFIED = 'delete_modified';
+    /** Solo en applied.json: conflicto resuelto por merge 3-way sin choques. */
+    public const MERGED = 'merged';
 
     /** Acciones que efectivamente modifican el árbol. */
     public const MUTATING = [self::ADD, self::UPDATE, self::CONFLICT, self::CONFLICT_ADD, self::DELETE];
@@ -90,7 +98,7 @@ final class CoreUpdater
             } elseif ($old === null) {
                 $plan[] = self::entry($path, self::CONFLICT_ADD, 'la app creó un archivo que ahora trae el core');
             } else {
-                $plan[] = self::entry($path, self::CONFLICT, 'la app modificó un archivo del core');
+                $plan[] = self::entry($path, self::CONFLICT, 'la app modificó un archivo del core') + ['old' => $old];
             }
         }
 
@@ -136,18 +144,28 @@ final class CoreUpdater
     /**
      * Aplica el plan. Respalda lo que toca en $backupDir y escribe applied.json.
      *
-     * @param array<int,array{path:string,action:string,reason:string}> $plan
-     * @return array{applied:array<int,array{path:string,action:string}>,errors:array<int,string>,conflicts:array<int,string>}
+     * Opciones:
+     *   base_dir  ?string  copia del core instalado (habilita el merge 3-way de conflictos)
+     *   merge     bool     false = comportamiento clásico (solo `.new`), default true
+     *
+     * @param array<int,array{path:string,action:string,reason:string,old?:?string}> $plan
+     * @param array{base_dir?:?string,merge?:bool} $opts
+     * @return array{applied:array<int,array{path:string,action:string}>,errors:array<int,string>,conflicts:array<int,string>,merged:array<int,string>,merge_conflicts:array<int,string>}
      */
-    public static function apply(array $plan, string $installRoot, string $sourceRoot, string $backupDir): array
+    public static function apply(array $plan, string $installRoot, string $sourceRoot, string $backupDir, array $opts = []): array
     {
         $installRoot = rtrim(str_replace('\\', '/', $installRoot), '/');
         $sourceRoot  = rtrim(str_replace('\\', '/', $sourceRoot), '/');
         $backupDir   = rtrim(str_replace('\\', '/', $backupDir), '/');
+        $baseDir     = isset($opts['base_dir']) && $opts['base_dir'] !== null
+            ? rtrim(str_replace('\\', '/', (string) $opts['base_dir']), '/') : null;
+        $doMerge     = ($opts['merge'] ?? true) && $baseDir !== null;
 
         $applied = [];
         $errors = [];
         $conflicts = [];
+        $merged = [];
+        $mergeConflicts = [];
 
         foreach ($plan as $e) {
             $path = $e['path'];
@@ -182,6 +200,22 @@ final class CoreUpdater
                             $errors[] = "fuente faltante para conflict: {$path}";
                             break;
                         }
+                        if ($action === self::CONFLICT && $doMerge) {
+                            $m = self::tryMerge($e, $dst, $src, (string) $baseDir);
+                            if ($m !== null && $m['clean']) {
+                                // Merge limpio: el local queda combinado (con backup para rollback).
+                                self::backup($dst, $backupDir . '/files/' . $path);
+                                self::write($dst, $m['content']);
+                                $merged[] = $path;
+                                $applied[] = ['path' => $path, 'action' => self::MERGED];
+                                break;
+                            }
+                            if ($m !== null) {
+                                // Choques: se deja la propuesta con marcadores junto al .new.
+                                self::write($dst . '.merge', $m['content']);
+                                $mergeConflicts[] = $path;
+                            }
+                        }
                         self::copy($src, $dst . '.new');
                         $conflicts[] = $path;
                         $applied[] = ['path' => $path, 'action' => $action];
@@ -210,7 +244,13 @@ final class CoreUpdater
             json_encode(['applied' => $applied], JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE)
         );
 
-        return ['applied' => $applied, 'errors' => $errors, 'conflicts' => $conflicts];
+        return [
+            'applied' => $applied,
+            'errors' => $errors,
+            'conflicts' => $conflicts,
+            'merged' => $merged,
+            'merge_conflicts' => $mergeConflicts,
+        ];
     }
 
     /**
@@ -242,6 +282,7 @@ final class CoreUpdater
                 switch ($action) {
                     case self::UPDATE:
                     case self::DELETE:
+                    case self::MERGED:
                         if (is_file($bak)) {
                             self::copy($bak, $dst);
                             $restored++;
@@ -256,6 +297,7 @@ final class CoreUpdater
                     case self::CONFLICT:
                     case self::CONFLICT_ADD:
                         @unlink($dst . '.new'); // solo se había dejado el .new
+                        @unlink($dst . '.merge'); // y, si hubo merge con choques, el .merge
                         $restored++;
                         break;
                 }
@@ -267,7 +309,156 @@ final class CoreUpdater
         return ['restored' => $restored, 'errors' => $errors];
     }
 
+    // ── base del core (para merge 3-way) ─────────────────────────────────────
+
+    /**
+     * Guarda en $baseDir la copia "tal cual la envió el core" de cada archivo del lock,
+     * tomándola de $fromRoot SOLO si su sha256 coincide con el del lock (así nunca se
+     * guarda como base una versión editada por la app). Los que ya están válidos en la
+     * base se dejan. Con $prune, borra de la base lo que no está en el lock.
+     *
+     * Usos: tras un update (fromRoot = paquete nuevo → base completa), y en forma
+     * oportunista desde el árbol instalado (captura los archivos aún sin editar).
+     *
+     * @param array<string,string> $lock
+     * @return array{stored:int,present:int,missing:int}
+     */
+    public static function storeBase(array $lock, string $fromRoot, string $baseDir, bool $prune = false): array
+    {
+        $fromRoot = rtrim(str_replace('\\', '/', $fromRoot), '/');
+        $baseDir  = rtrim(str_replace('\\', '/', $baseDir), '/');
+        $stored = $present = $missing = 0;
+
+        foreach ($lock as $path => $hash) {
+            $dst = $baseDir . '/' . $path;
+            if (self::hashFile($dst) === $hash) {
+                $present++;
+                continue;
+            }
+            $src = $fromRoot . '/' . $path;
+            if (self::hashFile($src) === $hash) {
+                self::copy($src, $dst);
+                $stored++;
+            } else {
+                $missing++;
+            }
+        }
+
+        if ($prune && is_dir($baseDir)) {
+            $it = new \RecursiveIteratorIterator(
+                new \RecursiveDirectoryIterator($baseDir, \FilesystemIterator::SKIP_DOTS),
+                \RecursiveIteratorIterator::CHILD_FIRST
+            );
+            foreach ($it as $f) {
+                $rel = ltrim(substr(str_replace('\\', '/', $f->getPathname()), strlen($baseDir)), '/');
+                if ($f->isDir()) {
+                    @rmdir($f->getPathname()); // solo si quedó vacío
+                } elseif (!array_key_exists($rel, $lock)) {
+                    @unlink($f->getPathname());
+                }
+            }
+        }
+
+        return ['stored' => $stored, 'present' => $present, 'missing' => $missing];
+    }
+
+    /**
+     * Estado de la base respecto de un lock: cuántos archivos tienen su original guardado.
+     * @param array<string,string> $lock
+     * @return array{total:int,valid:int,missing:array<int,string>}
+     */
+    public static function baseStatus(array $lock, string $baseDir): array
+    {
+        $baseDir = rtrim(str_replace('\\', '/', $baseDir), '/');
+        $valid = 0;
+        $missing = [];
+        foreach ($lock as $path => $hash) {
+            if (self::hashFile($baseDir . '/' . $path) === $hash) {
+                $valid++;
+            } else {
+                $missing[] = $path;
+            }
+        }
+        return ['total' => count($lock), 'valid' => $valid, 'missing' => $missing];
+    }
+
+    /**
+     * Vista previa del merge para los conflictos del plan (no escribe nada).
+     *   clean     se combina solo
+     *   conflict  hay choques (quedará .merge con marcadores + .new)
+     *   no_base   falta el original en la base → solo .new
+     *   binary    archivo binario → solo .new
+     *
+     * @param array<int,array{path:string,action:string,reason:string,old?:?string}> $plan
+     * @return array<string,array{status:string,conflicts:int}>
+     */
+    public static function mergePreview(array $plan, string $installRoot, string $sourceRoot, string $baseDir): array
+    {
+        $installRoot = rtrim(str_replace('\\', '/', $installRoot), '/');
+        $sourceRoot  = rtrim(str_replace('\\', '/', $sourceRoot), '/');
+        $out = [];
+        foreach ($plan as $e) {
+            if ($e['action'] !== self::CONFLICT) {
+                continue;
+            }
+            $dst = $installRoot . '/' . $e['path'];
+            $src = $sourceRoot . '/' . $e['path'];
+            $m = self::tryMerge($e, $dst, $src, $baseDir);
+            if ($m === null) {
+                $out[$e['path']] = ['status' => self::mergeSkipReason($e, $dst, $src, $baseDir), 'conflicts' => 0];
+            } else {
+                $out[$e['path']] = ['status' => $m['clean'] ? 'clean' : 'conflict', 'conflicts' => $m['conflicts']];
+            }
+        }
+        return $out;
+    }
+
+    /**
+     * Intenta el merge de un conflicto. null si no se puede (sin base válida o binario).
+     * @param array{path:string,action:string,reason:string,old?:?string} $e
+     * @return array{clean:bool,content:string,conflicts:int}|null
+     */
+    private static function tryMerge(array $e, string $dst, string $src, string $baseDir): ?array
+    {
+        if (self::mergeSkipReason($e, $dst, $src, $baseDir) !== '') {
+            return null;
+        }
+        $base   = (string) file_get_contents(rtrim($baseDir, '/') . '/' . $e['path']);
+        $ours   = (string) file_get_contents($dst);
+        $theirs = (string) file_get_contents($src);
+        return ThreeWayMerge::merge($base, $ours, $theirs);
+    }
+
+    /** '' si se puede mergear; si no, el motivo (no_base | binary). */
+    private static function mergeSkipReason(array $e, string $dst, string $src, string $baseDir): string
+    {
+        $old = $e['old'] ?? null;
+        $baseFile = rtrim($baseDir, '/') . '/' . $e['path'];
+        if ($old === null || $old === '' || self::hashFile($baseFile) !== $old || !is_file($dst) || !is_file($src)) {
+            return 'no_base';
+        }
+        foreach ([$baseFile, $dst, $src] as $f) {
+            $h = @fopen($f, 'rb');
+            $head = $h ? (string) fread($h, 8192) : '';
+            if ($h) {
+                fclose($h);
+            }
+            if (ThreeWayMerge::isBinary($head)) {
+                return 'binary';
+            }
+        }
+        return '';
+    }
+
     // ── helpers de archivos ──────────────────────────────────────────────────
+
+    private static function write(string $dst, string $content): void
+    {
+        self::ensureDir(\dirname($dst));
+        if (@file_put_contents($dst, $content) === false) {
+            throw new \RuntimeException("no se pudo escribir {$dst}");
+        }
+    }
 
     private static function ensureDir(string $dir): void
     {

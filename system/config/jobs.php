@@ -35,6 +35,25 @@ return [
         return "cola jobs: {$r['done']} ok, {$r['retried']} reintentar, {$r['failed']} fallidos de {$r['processed']}.";
     },
 
+    // Manuales remotos (config/remote_docs.php): baja los que cambiaron. Opt-in: programalo
+    // como tarea `job:docs:sync` (sugerido: diario) solo si el proyecto los usa.
+    'docs:sync' => static function (): string {
+        $parts = [];
+        $errors = 0;
+        foreach (\App\Services\RemoteDocs::sync() as $key => $r) {
+            if ($r['status'] === 'disabled') {
+                continue;
+            }
+            $errors += $r['status'] === 'error' ? 1 : 0;
+            $parts[] = $key . ':' . $r['status'] . ($r['version'] !== null ? '@' . $r['version'] : '')
+                . ($r['error'] !== null ? ' (' . $r['error'] . ')' : '');
+        }
+        if ($errors > 0) {
+            throw new \RuntimeException('docs:sync con errores — ' . implode(', ', $parts));
+        }
+        return 'manuales: ' . ($parts === [] ? 'ninguno habilitado' : implode(', ', $parts));
+    },
+
     'backup:run' => static function (): string {
         $db = \App\Services\Backup::createDatabaseBackup();
         $files = \App\Services\Backup::createFilesBackup();

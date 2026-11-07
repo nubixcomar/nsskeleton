@@ -50,6 +50,7 @@ return [
                 ['/admin/logs',   'Logs',          'logs.view',     'list'],
                 ['/admin/cron',   'Tareas / Cron', 'cron.manage',   'clock'],
                 ['/admin/jobs',   'Colas / Jobs',  'cron.manage',   'queue'],
+                ['/admin/core-update', 'Actualizar core', 'core.update', 'cube'],
             ],
         ],
     ],

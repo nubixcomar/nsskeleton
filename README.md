@@ -52,9 +52,9 @@ nsSkeleton/
 │   ├── rules/        Reglas en cascada (master → stack → features)
 │   ├── agents/       Agentes por categoría (qa, audit, dev, docs, data, frontend, integrations)
 │   ├── skills/       Especificación detallada por skill ({nombre}/SKILL.md)
-│   ├── commands/     Comandos de orquestación (/bug, /audit, /fix, /sprint...)
+│   ├── commands/     Comandos de orquestación (/roadmap, /brief, /plan, /bug, /fix, /sprint...)
 │   ├── templates/    Plantillas: brief, roadmap, bug-report, walkthrough...
-│   ├── methodology/  Sprints, bug-tracking y logging obligatorio
+│   ├── methodology/  Roadmap→Brief→Plan, sprints, bug-tracking y logging obligatorio
 │   ├── knowledge/    Manuales de referencia (APIs de ecommerce, etc.)
 │   └── adapters/     Bindings por stack (php-mvc por defecto)
 ├── app-agentic/    Capa agéntica DEL PROYECTO (nunca la pisa un update de core)
@@ -62,6 +62,7 @@ nsSkeleton/
 ├── system/         Esqueleto de sistema, CORE (PHP MVC + MySQL)
 ├── app/            Código del proyecto (namespace App\): Controllers/Models/Services/Views
 ├── tests/          Suite propia (unit/ + feature/) — `php tests/run.php`
+├── planning/       Del proyecto: roadmap/ (RM-), briefs/ (BR-), plans/ (PL-) — se crea con /roadmap init
 ├── docs/           brief.md · roadmap.md · architecture.md · stack.md · CHANGELOG.md
 ├── logs/           Logs incrementales por agente + walkthroughs
 ├── core-manifest.json  Frontera declarativa core/app (qué es del core)
@@ -89,6 +90,24 @@ sobrevive intacto a un update de core. Ver [`docs/CORE-UPDATE.md`](docs/CORE-UPD
 
 ---
 
+## Filosofía de trabajo: entender → decidir → codear
+
+Para implementaciones medianas y grandes, nsSkeleton trae de fábrica el flujo
+**Roadmap → Brief → Plan**, con tres índices codificados y con estado:
+
+| Fase | Comando | Código | Qué resuelve |
+|------|---------|--------|--------------|
+| Roadmap | `/roadmap` (`/rm`) | `RM-` | Qué se construye y cuándo (fechas tentativas, re-planificación con historial). |
+| Brief | `/brief` (`/br`) | `BR-` | Por qué y para quién: dolores, experiencia del cliente, necesidades. Agentes curiosos, creativos y escépticos preguntan hasta que no quedan dudas. |
+| Plan | `/plan` (`/pl`) | `PL-` | Cómo: diseño + fases ejecutables casi en pseudocódigo. Se ejecuta con `/plan run`, incluso en loop. |
+
+**Pensar caro, ejecutar barato:** el brief y el plan se hacen con el modelo más capaz y
+esfuerzo máximo; la ejecución desde un plan aprobado, con un modelo estándar. Las urgencias
+pueden saltear fases, pero queda registrado. Ver
+[`agentic/methodology/roadmap-brief-plan.md`](agentic/methodology/roadmap-brief-plan.md).
+
+---
+
 ## Reglas no negociables para todo proyecto iniciado desde nsSkeleton
 
 Todo agente, **siempre**, al finalizar una tarea:
@@ -103,7 +122,7 @@ Ver detalle en [`agentic/methodology/logging.md`](agentic/methodology/logging.md
 
 ## Estado del proyecto
 
-✅ **Versión 1.19.0** — 384 tests verdes, verificados contra MySQL.
+✅ **Versión 1.20.0** — 445 tests verdes, verificados contra MySQL.
 
 Sobre el MVP (núcleo MVC, login/perfiles, cron, emails, backups, gráficos, file manager, IA)
 se fue sumando:
@@ -126,6 +145,10 @@ se fue sumando:
 - **v1.19** — **Cron v2**: disparador web `/cron/run` protegido por secreto + allowlist de IP
   (para EasyCron/curl, sin depender del cron del SO), tareas tipo `url:` e historial de
   ejecuciones con filtros.
+- **v1.20** — **actualizador de core** con merge 3-way automático de conflictos, índice
+  `latest.json` (descarga verificada por sha256, `--check`/`--latest`) y pantalla
+  `/admin/core-update`; **`/nuevo-proyecto`** para crear un derivado en un paso; manuales
+  remotos; metodología **Roadmap → Brief → Plan** (`planning/`, comandos `/roadmap` `/brief` `/plan`).
 
 Detalle completo en [`docs/CHANGELOG.md`](docs/CHANGELOG.md).
 

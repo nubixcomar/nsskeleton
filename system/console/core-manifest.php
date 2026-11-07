@@ -26,6 +26,15 @@ $manifestFile = $root . '/core-manifest.json';
 $lockFile     = $root . '/core-lock.json';
 $check        = in_array('--check', $argv, true);
 
+// En un proyecto derivado el lock describe el core RECIBIDO: regenerarlo metería las
+// ediciones de la app como si fueran del core y el actualizador dejaría de verlas.
+// (--check es solo lectura y sí se permite.)
+if (!$check && is_file($root . '/nsproject.json') && !in_array('--force', $argv, true)) {
+    fwrite(STDERR, "Este árbol es un proyecto derivado (nsproject.json): core-lock.json lo genera el\n"
+        . "master del skeleton al publicar. No se regenera acá (usá --force si sabés lo que hacés).\n");
+    exit(1);
+}
+
 if (!is_file($manifestFile)) {
     fwrite(STDERR, "No existe core-manifest.json en {$root}\n");
     exit(1);

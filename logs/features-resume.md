@@ -28,6 +28,13 @@ Histórico acumulativo de features construidos (ver `agentic/methodology/sprints
 ## Release
 **v1.0.0 — 2026-06-22.** Primer MVP de nsSkeleton.
 
+## Releases posteriores
+> Detalle por versión en `docs/CHANGELOG.md` y `planning/roadmap/` (RM-xxx).
+
+| Versión | Fecha | Features | Estado | Agente | Modelo |
+|---------|-------|----------|--------|--------|--------|
+| 1.20.0 | 2026-11-07 | Actualizador: merge 3-way + `latest.json` + `/admin/core-update` (RM-020) · manuales remotos (RM-021) · `/nuevo-proyecto` · metodología RM→BR→PL + helper `planning` (RM-022 🟡, PL-001 ✅) | ✅ | core-dev / release-manager | opus-5-5 |
+
 ## Nota de verificación
 Todo el código pasa `php -l`. Los flujos que tocan MySQL fueron **verificados
 end-to-end** contra MySQL (puerto 3307): migraciones + seed, login con CSRF/cookie,
