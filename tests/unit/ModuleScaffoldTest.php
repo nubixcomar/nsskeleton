@@ -48,3 +48,9 @@ it('isValidType reconoce los tipos soportados', function () {
     assertTrue(S::isValidType('datetime'));
     assertFalse(S::isValidType('blob'));
 });
+
+it('la plantilla de controlador generado declara su permiso (PL-002/F4)', function () {
+    $src = (string) file_get_contents(BASE_PATH . '/console/make-module.php');
+    assertTrue(str_contains($src, 'protected function requiredPermission(): string'), 'el controlador generado debe declarar requiredPermission()');
+    assertTrue(str_contains($src, "return 'modules.manage';"));
+});

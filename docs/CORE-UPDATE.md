@@ -96,13 +96,29 @@ core te envió antes), tu árbol local (para ver si editaste el core) y el lock 
 | `add` | archivo nuevo del core → se agrega |
 | `update` | archivo del core que no tocaste → se pisa (limpio) |
 | `skip` | ya está igual al nuevo → nada |
-| `conflict` | **editaste un archivo del core** → el nuevo se deja como `archivo.new` (no se pisa) |
+| `skip` *(editado por la app)* | editaste un archivo del core **que el core no cambió en esta versión** → se conserva tu versión, sin `.new` ni merge (1.20.3; antes salía como conflicto falso). El plan y el panel lo listan aparte |
+| `conflict` | **editaste un archivo del core** y el core también lo cambió → merge 3-way o `archivo.new` (no se pisa) |
 | `conflict_add` | creaste un archivo donde ahora el core trae uno → `.new` |
 | `delete` | el core eliminó un archivo que no tocaste → se borra |
 | `delete_modified` | el core lo eliminó pero vos lo editaste → **se conserva** + aviso |
 
 Solo se tocan archivos del core. Tus overrides, módulos, migraciones de app y datos son
 **untracked** → intactos por construcción.
+
+### Chequeo de drift en un proyecto (`core-manifest.php --check`)
+En un proyecto derivado (tiene `nsproject.json`), `--check` verifica **solo los archivos del
+lock**: si falta o cambió alguno, es drift (`[falta]` / `[modificado]`, con la lista). Lo que
+agrega el proyecto —`config/routes.app.php`, `config/routes/*`, `config/overrides/*`,
+`database/migrations/app/*`, `app/Views/overrides/*`, los módulos generados, `tests/app/*`— no
+es del core y no cuenta. Un archivo del core que editaste aparece como `[modificado]` incluso
+después de un update que lo conservó (`skip` editado por la app): es correcto, es la señal de que
+conviene moverlo a un override. En el master, `--check` compara el árbol completo y lista las
+diferencias (`[nuevo]` / `[quitado]` / `[modificado]`).
+
+`system/config/modules_menu.php` (lo escribe `make-module`) y `tests/app/` son **del proyecto**
+desde 1.20.3: no viajan en el paquete de core. En un proyecto creado antes, el primer update lo
+borra si nunca generaste módulos (el menú lee el archivo con `is_file()` y `make-module` lo
+recrea) o lo conserva (`delete_modified`) si ya lo usaste.
 
 ---
 

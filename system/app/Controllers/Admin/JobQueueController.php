@@ -17,10 +17,9 @@ use Core\Url;
  */
 final class JobQueueController extends AdminController
 {
-    public function __construct()
+    protected function requiredPermission(): string
     {
-        parent::__construct();
-        $this->requirePermission('cron.manage');
+        return 'cron.manage';
     }
 
     public function index(): Response

@@ -18,10 +18,13 @@ use Core\Response;
  */
 final class LogViewerController extends AdminController
 {
+    protected function requiredPermission(): string
+    {
+        return 'logs.view';
+    }
+
     public function index(Request $request): Response
     {
-        $this->requirePermission('logs.view');
-
         $lines = max(20, min(1000, (int) $request->input('lines', 200)));
         $entries = ErrorLog::tail($lines);
         // Más recientes arriba.

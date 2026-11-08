@@ -1,0 +1,2 @@
+[2026-11-08 09:35:38] [DOCS] BR-001 + PL-002 | informe de nsWMS como brief (Listo) + plan de hardening 1.20.3 en 10 fases (NSK-01/02/03 + Guard active + totp_secret), sin RM por decision del humano; lint 0/0 | modelo: claude-opus-5-5
+[2026-11-08 10:11:25] [DOCS] Review PL-002 | revision independiente: aprobable con cambios, 16 hallazgos (1 bloqueante) incorporados; decision humana: dashboard abierto con widgets filtrados; BR-001 actualizado; lint 0/0 | modelo: claude-opus-5-5

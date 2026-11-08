@@ -17,10 +17,9 @@ use Core\Url;
  */
 final class ApiTokenController extends AdminController
 {
-    public function __construct()
+    protected function requiredPermission(): string
     {
-        parent::__construct();
-        $this->requirePermission('api.manage');
+        return 'api.manage';
     }
 
     public function index(): Response

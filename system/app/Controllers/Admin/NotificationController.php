@@ -16,6 +16,12 @@ use Core\Url;
  */
 final class NotificationController extends AdminController
 {
+    /** Solo sesión: cada usuario ve sus propias notificaciones. */
+    protected function requiredPermission(): string
+    {
+        return self::AUTH_ONLY;
+    }
+
     public function index(): Response
     {
         $uid = (int) Auth::id();

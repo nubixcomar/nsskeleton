@@ -14,6 +14,11 @@ use Core\Response;
  */
 final class HealthController extends AdminController
 {
+    protected function requiredPermission(): string
+    {
+        return 'logs.view';
+    }
+
     public function index(): Response
     {
         return $this->view('admin/health/index', [

@@ -55,6 +55,19 @@ it('app-agentic/ NO está en el lock (es del proyecto)', function () use ($root)
     }
 });
 
+it('modules_menu.php y tests/app/ son del proyecto: no están en el lock (PL-002/F7)', function () use ($root) {
+    $l = json_decode((string) file_get_contents($root . '/core-lock.json'), true);
+    $files = $l['files'] ?? [];
+    assertFalse(isset($files['system/config/modules_menu.php']), 'make-module escribe modules_menu.php: no puede ser core');
+    foreach (array_keys($files) as $f) {
+        assertFalse(str_starts_with($f, 'tests/app/'), "tests/app/ no debería estar en el lock: {$f}");
+    }
+    if (!is_file($root . '/nsproject.json')) {
+        // Solo el master: en un derivado el update lo borra si nunca se generaron módulos.
+        assertTrue(is_file($root . '/system/config/modules_menu.php'), 'el master conserva su modules_menu.php vacío');
+    }
+});
+
 it('el lock no tiene drift contra el árbol (--check)', function () use ($root) {
     if (!function_exists('exec')) {
         return 'skip';

@@ -6,9 +6,10 @@ $tag = [
     'emerald' => 'bg-emerald-100 text-emerald-700', 'indigo' => 'bg-indigo-100 text-indigo-700',
     'rose' => 'bg-rose-100 text-rose-700', 'sky' => 'bg-sky-100 text-sky-700',
 ];
+$showHealth = ($health ?? null) !== null; // null = el usuario no tiene logs.view
 ?>
-<div class="mb-8 grid gap-4 lg:grid-cols-3">
-    <div class="lg:col-span-2 rounded-xl bg-white p-5 shadow-sm ring-1 ring-slate-200">
+<div class="mb-8 grid gap-4 <?= $showHealth ? 'lg:grid-cols-3' : '' ?>">
+    <div class="<?= $showHealth ? 'lg:col-span-2 ' : '' ?>rounded-xl bg-white p-5 shadow-sm ring-1 ring-slate-200">
         <h2 class="mb-3 text-sm font-semibold text-slate-700">📣 Novedades</h2>
         <ul class="space-y-3">
             <?php foreach ($novedades as $n): ?>
@@ -22,6 +23,7 @@ $tag = [
             <?php endforeach; ?>
         </ul>
     </div>
+    <?php if ($showHealth): ?>
     <div class="rounded-xl bg-white p-5 shadow-sm ring-1 ring-slate-200">
         <h2 class="mb-3 text-sm font-semibold text-slate-700">🩺 Estado del sistema</h2>
         <dl class="space-y-2 text-sm">
@@ -43,4 +45,5 @@ $tag = [
             <?php endforeach; ?>
         </dl>
     </div>
+    <?php endif; ?>
 </div>

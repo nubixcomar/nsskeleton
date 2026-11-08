@@ -14,10 +14,9 @@ use Core\Response;
  */
 final class AuditController extends AdminController
 {
-    public function __construct()
+    protected function requiredPermission(): string
     {
-        parent::__construct();
-        $this->requirePermission('audit.view');
+        return 'audit.view';
     }
 
     public function index(Request $request): Response

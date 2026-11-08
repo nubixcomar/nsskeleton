@@ -37,8 +37,12 @@ final class CoreUpdateController extends AdminController
             \Core\View::render('errors/404', [], 'layouts/error', 404)->send();
             exit;
         }
-        $this->requirePermission('core.update');
         $this->cu = CoreUpdate::forInstall();
+    }
+
+    protected function requiredPermission(): string
+    {
+        return 'core.update';
     }
 
     public function index(): Response

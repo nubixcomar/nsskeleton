@@ -20,10 +20,9 @@ final class SettingsController extends AdminController
     private const LOGO_EXT = ['png', 'jpg', 'jpeg', 'webp', 'svg'];
     private const LOGO_MAX = 1048576; // 1 MB
 
-    public function __construct()
+    protected function requiredPermission(): string
     {
-        parent::__construct();
-        $this->requirePermission('settings.manage');
+        return 'settings.manage';
     }
 
     public function show(): Response

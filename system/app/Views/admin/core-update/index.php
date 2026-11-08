@@ -121,7 +121,9 @@ $mergeLabel = [
 <?php if ($pending !== null && $inspect !== null): ?>
     <?php
     $sum = $inspect['summary'];
-    $flagged = array_values(array_filter($inspect['plan'], static fn ($e) => in_array($e['action'], [CoreUpdater::CONFLICT, CoreUpdater::CONFLICT_ADD, CoreUpdater::DELETE_MODIFIED], true)));
+    $isAppEdit = static fn (array $e): bool => $e['action'] === CoreUpdater::SKIP && $e['reason'] === CoreUpdater::REASON_APP_EDIT;
+    $flagged = array_values(array_filter($inspect['plan'], static fn ($e) => $isAppEdit($e)
+        || in_array($e['action'], [CoreUpdater::CONFLICT, CoreUpdater::CONFLICT_ADD, CoreUpdater::DELETE_MODIFIED], true)));
     ?>
     <div class="mb-6 rounded-xl bg-white p-5 shadow-sm ring-1 ring-slate-200">
         <div class="mb-4 flex flex-wrap items-baseline justify-between gap-2">
@@ -150,9 +152,13 @@ $mergeLabel = [
                     <tbody class="divide-y divide-slate-100">
                         <?php foreach ($flagged as $e): ?>
                             <?php
-                            [$al, $ac] = $actionLabel[$e['action']];
+                            [$al, $ac] = $isAppEdit($e)
+                                ? ['Editado por el proyecto (el core no lo cambió)', 'bg-slate-100 text-slate-600']
+                                : $actionLabel[$e['action']];
                             $m = $inspect['merge'][$e['path']] ?? null;
-                            if ($e['action'] === CoreUpdater::CONFLICT && $m !== null) {
+                            if ($isAppEdit($e)) {
+                                [$ml, $mc] = ['Se conserva tu versión', 'bg-slate-100 text-slate-600'];
+                            } elseif ($e['action'] === CoreUpdater::CONFLICT && $m !== null) {
                                 [$ml, $mc] = $mergeLabel[$m['status']] ?? [$m['status'], 'bg-slate-100 text-slate-600'];
                                 if ($m['status'] === 'conflict') {
                                     $ml .= " ({$m['conflicts']})";

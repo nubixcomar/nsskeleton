@@ -22,12 +22,54 @@ use Throwable;
  */
 final class DashboardController extends AdminController
 {
+    /** Abierto a todo usuario logueado: cada widget exige su propio permiso (ver index()). */
+    protected function requiredPermission(): string
+    {
+        return self::AUTH_ONLY;
+    }
+
     public function index(): Response
     {
-        $stats = $this->gatherStats();
+        $can = static fn (string $p): bool => Rbac::can($p);
+        $blocks = \App\Services\Dashboard::visibleBlocks(\App\Services\Dashboard::blocks(), $can);
+
+        // Solo se calcula (y se consulta) lo que el usuario puede ver.
+        $withMetrics = in_array('kpis', $blocks, true) || in_array('charts', $blocks, true);
+        $stats = $withMetrics ? $this->gatherStats() : [];
+        $modules = $this->moduleGallery();
+        if ($modules === []) {
+            $blocks = array_values(array_filter($blocks, static fn (string $b): bool => $b !== 'modules'));
+        }
+        $canHealth = $can('logs.view');
+        $preset = \App\Services\Dashboard::active();
+
+        return $this->view('admin/dashboard', [
+            'user'        => Auth::user(),
+            'blocks'      => $blocks,
+            'presetLabel' => \App\Services\Dashboard::presets()[$preset]['label'] ?? 'Completo',
+            'stats'       => $stats,
+            'charts'      => $withMetrics ? $this->charts($stats) : [],
+            'alerts'      => in_array('alerts', $blocks, true) ? AlertService::all() : null,
+            'health'      => $canHealth ? Health::full() : null,
+            'kpis'        => $withMetrics ? $this->kpis($stats) : [],
+            'novedades'   => $this->novedades(),
+            'recentAudit' => $can('audit.view') ? $this->recentAudit() : null,
+            'recentJobs'  => $can('cron.manage') ? $this->recentJobs() : null,
+            'modules'     => $modules,
+            'canHealth'   => $canHealth,
+            'canSearch'   => $can('modules.manage'),
+        ], 'layouts/admin');
+    }
+
+    /**
+     * @param array<string,mixed> $stats
+     * @return array<int,mixed>
+     */
+    private function charts(array $stats): array
+    {
         $jobs = $stats['jobs'];
 
-        $charts = [
+        return [
             Charts::bar('chartResources', 'Recursos del sistema',
                 ['Admins', 'Cron', 'Emails', 'Backups', 'Jobs', 'Webhooks'],
                 [$stats['admins'], $stats['cronTasks'], $stats['emailsTotal'], $stats['backups'], $stats['jobsTotal'], $stats['webhooks']]),
@@ -42,23 +84,6 @@ final class DashboardController extends AdminController
             Charts::bar('chartActivity7d', 'Actividad (últimos 7 días)',
                 $stats['activity7dLabels'], $stats['activity7dData']),
         ];
-
-        $preset = \App\Services\Dashboard::active();
-
-        return $this->view('admin/dashboard', [
-            'user'        => Auth::user(),
-            'blocks'      => \App\Services\Dashboard::blocks(),
-            'presetLabel' => \App\Services\Dashboard::presets()[$preset]['label'] ?? 'Completo',
-            'stats'       => $stats,
-            'charts'      => $charts,
-            'alerts'      => AlertService::all(),
-            'health'      => Health::full(),
-            'kpis'        => $this->kpis($stats),
-            'novedades'   => $this->novedades(),
-            'recentAudit' => $this->recentAudit(),
-            'recentJobs'  => $this->recentJobs(),
-            'modules'     => $this->moduleGallery(),
-        ], 'layouts/admin');
     }
 
     /** @return array<string,mixed> */
@@ -160,7 +185,7 @@ final class DashboardController extends AdminController
             ['icon' => 'key', 'title' => 'API REST', 'desc' => 'Tokens, scopes, rate-limit y OpenAPI.', 'url' => '/admin/api-tokens', 'perm' => 'api.manage'],
             ['icon' => 'bolt', 'title' => 'Webhooks', 'desc' => 'Eventos → URLs externas con firma HMAC.', 'url' => '/admin/webhooks', 'perm' => 'api.manage'],
             ['icon' => 'archive', 'title' => 'Backups', 'desc' => 'Copias de base y archivos + restauración.', 'url' => '/admin/backup', 'perm' => 'backup.manage'],
-            ['icon' => 'heart', 'title' => 'Estado / Salud', 'desc' => 'Métricas, versiones y feature flags.', 'url' => '/admin/health', 'perm' => 'dashboard.view'],
+            ['icon' => 'heart', 'title' => 'Estado / Salud', 'desc' => 'Métricas, versiones y feature flags.', 'url' => '/admin/health', 'perm' => 'logs.view'],
             ['icon' => 'adjustments', 'title' => 'Configuración', 'desc' => 'Branding, zona horaria, versión de app.', 'url' => '/admin/settings', 'perm' => 'settings.manage'],
         ];
         return array_values(array_filter($all, static fn (array $m): bool => Rbac::can($m['perm'])));

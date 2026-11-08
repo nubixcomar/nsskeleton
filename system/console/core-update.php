@@ -256,7 +256,12 @@ $mergeLabel = [
     'binary'   => 'binario → .new',
 ];
 foreach ($info['plan'] as $e) {
-    if (!in_array($e['action'], [CoreUpdater::CONFLICT, CoreUpdater::CONFLICT_ADD, CoreUpdater::DELETE_MODIFIED], true)) {
+    $appEdit = $e['action'] === CoreUpdater::SKIP && $e['reason'] === CoreUpdater::REASON_APP_EDIT;
+    if (!$appEdit && !in_array($e['action'], [CoreUpdater::CONFLICT, CoreUpdater::CONFLICT_ADD, CoreUpdater::DELETE_MODIFIED], true)) {
+        continue;
+    }
+    if ($appEdit) {
+        echo "    [editado por la app] {$e['path']} — el core no lo cambió: se conserva tu versión\n";
         continue;
     }
     $extra = '';

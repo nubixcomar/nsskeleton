@@ -6,8 +6,11 @@ declare(strict_types=1);
  * Runner de migraciones (CLI).
  *   php system/database/migrate.php            → aplica pendientes (up)
  *   php system/database/migrate.php status     → estado de cada migración
- *   php system/database/migrate.php rollback [N]→ revierte las últimas N (default 1)
- *   php system/database/migrate.php fresh       → revierte todo y vuelve a migrar
+ *   php system/database/migrate.php rollback [N] [--core|--app]
+ *                                               → revierte las últimas N (default 1), en orden
+ *                                                 inverso de aplicación entre core y app
+ *                                                 (--core / --app: solo ese directorio)
+ *   php system/database/migrate.php fresh       → revierte todo (core + app) y vuelve a migrar
  *
  * Cada .sql puede incluir una sección de reversa tras una línea `-- @DOWN`.
  */
@@ -60,14 +63,21 @@ try {
             break;
 
         case 'rollback':
-            $n = (int) ($argv[2] ?? 1);
-            $done = Migrator::rollback($n);
+            // rollback [N] [--core|--app]: flags aparte de los posicionales; N = primer número (default 1).
+            $rest = array_slice($argv, 2);
+            $flags = array_values(array_filter($rest, static fn (string $a): bool => str_starts_with($a, '--')));
+            $nums = array_values(array_filter($rest, static fn (string $a): bool => ctype_digit($a)));
+            $n = $nums !== [] ? max(1, (int) $nums[0]) : 1;
+            $dir = in_array('--core', $flags, true) ? Migrator::dir()
+                : (in_array('--app', $flags, true) ? Migrator::appDir() : null); // null = core + app
+            $done = Migrator::rollback($n, $dir);
             echo $done === []
                 ? "Nada para revertir.\n"
                 : "Revertidas:\n  - " . implode("\n  - ", $done) . "\n";
             break;
 
         case 'fresh':
+            // Revierte TODO lo aplicado (core + app, en orden inverso) y reaplica core + app.
             $count = count(array_filter(Migrator::status(), static fn (array $m): bool => $m['applied']));
             Migrator::rollback($count);
             $done = Migrator::migrate();

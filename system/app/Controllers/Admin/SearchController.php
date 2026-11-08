@@ -14,6 +14,12 @@ use Core\Response;
  */
 final class SearchController extends AdminController
 {
+    /** Solo busca en los módulos generados, que se gobiernan con modules.manage. */
+    protected function requiredPermission(): string
+    {
+        return 'modules.manage';
+    }
+
     public function index(Request $request): Response
     {
         $q = trim((string) $request->query('q', ''));

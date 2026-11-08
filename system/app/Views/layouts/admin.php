@@ -190,10 +190,12 @@ $renderFlyoutItem = static function (array $item) use ($isActive): string {
                 <svg class="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/></svg>
             </button>
 
+            <?php if ($can('modules.manage')): // la búsqueda global recorre los módulos generados ?>
             <form method="get" action="<?= View::e(Url::to('/admin/search')) ?>" class="hidden items-center sm:flex">
                 <input type="search" name="q" placeholder="Buscar en todo…"
                        class="w-48 rounded-lg border border-slate-300 px-3 py-1.5 text-sm focus:border-indigo-500 focus:ring-indigo-500 lg:w-72">
             </form>
+            <?php endif; ?>
 
             <div class="ml-auto flex items-center gap-2 sm:gap-3">
                 <?php

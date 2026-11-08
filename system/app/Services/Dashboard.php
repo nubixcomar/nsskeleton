@@ -49,4 +49,43 @@ final class Dashboard
         $p = self::active();
         return self::presets()[$p]['blocks'] ?? ['kpis', 'charts'];
     }
+
+    /**
+     * Permisos de cada bloque (alcanza con tener UNO). Lista vacía = visible para todo usuario
+     * logueado (el bloque filtra por dentro lo que no corresponde). Un bloque desconocido
+     * (agregado por la app) se considera visible: su parcial decide.
+     */
+    public const BLOCK_PERMISSIONS = [
+        'kpis'    => ['dashboard.view'],
+        'charts'  => ['dashboard.view'],
+        'alerts'  => ['logs.view'],
+        'feed'    => [],                            // novedades abiertas; la salud exige logs.view
+        'recent'  => ['audit.view', 'cron.manage'], // cada tarjeta exige el suyo
+        'modules' => [],                            // la galería ya filtra por ítem
+    ];
+
+    /**
+     * Bloques que el usuario puede ver (PL-002/F3), en el orden del preset.
+     * @param array<int,string> $blocks
+     * @param callable(string):bool $can
+     * @return array<int,string>
+     */
+    public static function visibleBlocks(array $blocks, callable $can): array
+    {
+        $out = [];
+        foreach ($blocks as $b) {
+            $perms = self::BLOCK_PERMISSIONS[$b] ?? [];
+            if ($perms === []) {
+                $out[] = $b;
+                continue;
+            }
+            foreach ($perms as $p) {
+                if ($can($p)) {
+                    $out[] = $b;
+                    break;
+                }
+            }
+        }
+        return $out;
+    }
 }

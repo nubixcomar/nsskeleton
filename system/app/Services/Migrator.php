@@ -131,24 +131,52 @@ final class Migrator
         return self::migrate(self::appDir());
     }
 
-    /** Revierte las últimas N migraciones aplicadas que pertenezcan a $dir. @return array<int,string> */
+    /**
+     * Revierte las últimas N migraciones aplicadas.
+     *  - Sin $dir (default): **global** sobre core + app, en orden inverso de aplicación
+     *    (desde 1.20.3; antes revertía solo las del core aunque la última fuera de la app).
+     *  - Con $dir: solo las de ese directorio (comportamiento previo).
+     * @return array<int,string>
+     */
     public static function rollback(int $steps = 1, ?string $dir = null): array
     {
+        return self::rollbackAcross($steps, $dir !== null ? [$dir] : [self::dir(), self::appDir()]);
+    }
+
+    /**
+     * Revierte las últimas N migraciones aplicadas que pertenezcan a alguno de $dirs.
+     * Orden: `applied_at` DESC y, en empate (mismo segundo), la que `migrate()` aplicó después
+     * (posición en la lista combinada de los $dirs, en ese orden: core antes que app).
+     * @param array<int,string> $dirs
+     * @return array<int,string>
+     */
+    public static function rollbackAcross(int $steps, array $dirs): array
+    {
         self::ensureTable();
-        $dir = $dir ?? self::dir();
-        $dirFiles = array_map('basename', self::files($dir));
+        $pos = [];
+        $paths = [];
+        foreach ($dirs as $d) {
+            foreach (self::files($d) as $path) {
+                $name = basename($path);
+                if (!isset($pos[$name])) {
+                    $pos[$name] = count($pos);
+                    $paths[$name] = $path;
+                }
+            }
+        }
 
         $rows = array_values(array_filter(
             self::appliedRows(),
-            static fn (array $r): bool => in_array($r['migration'], $dirFiles, true)
+            static fn (array $r): bool => isset($pos[$r['migration']])
         ));
-        // Más reciente primero (por applied_at y luego por nombre).
-        usort($rows, static fn (array $a, array $b): int
-            => strcmp((string) $b['applied_at'] . $b['migration'], (string) $a['applied_at'] . $a['migration']));
+        usort($rows, static function (array $a, array $b) use ($pos): int {
+            $byTime = strcmp((string) $b['applied_at'], (string) $a['applied_at']);
+            return $byTime !== 0 ? $byTime : $pos[$b['migration']] <=> $pos[$a['migration']];
+        });
 
         $done = [];
         foreach (array_slice($rows, 0, max(0, $steps)) as $row) {
-            $path = $dir . '/' . $row['migration'];
+            $path = $paths[$row['migration']];
             $parsed = self::parse($path);
             if ($parsed['down'] !== '') {
                 Database::connection()->exec($parsed['down']);

@@ -18,10 +18,9 @@ use Core\Url;
  */
 final class UserPermissionController extends AdminController
 {
-    public function __construct()
+    protected function requiredPermission(): string
     {
-        parent::__construct();
-        $this->requirePermission('admins.manage');
+        return 'admins.manage';
     }
 
     public function edit(Request $request, string $id): Response

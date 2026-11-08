@@ -128,7 +128,13 @@ final class Guard
         return $id === null ? null : (int) $id;
     }
 
-    /** @return array<string,mixed>|null */
+    /**
+     * Usuario logueado, o null si no hay sesión, si el usuario ya no existe o si está inactivo
+     * (columna `active_column` del guard, la misma que respeta el login). Nunca devuelve la
+     * contraseña ni el secreto de 2FA (quien los necesite los lee con su propio SELECT).
+     * `check()` sigue mirando solo la sesión; el admin valida `user()` en cada request.
+     * @return array<string,mixed>|null
+     */
     public function user(): ?array
     {
         $id = $this->id();
@@ -136,9 +142,15 @@ final class Guard
             return null;
         }
         $user = Database::selectOne('SELECT * FROM ' . $this->table() . ' WHERE id = ? LIMIT 1', [$id]);
-        if ($user !== null) {
-            unset($user['password']);
+        if ($user === null) {
+            return null;
         }
+        $activeCol = $this->cfg['active_column'] ?? null;
+        if (is_string($activeCol) && $activeCol !== '' && array_key_exists($activeCol, $user)
+            && (int) $user[$activeCol] !== 1) {
+            return null;
+        }
+        unset($user['password'], $user['totp_secret']);
         return $user;
     }
 

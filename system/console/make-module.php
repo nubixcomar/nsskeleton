@@ -150,6 +150,15 @@ final class {$model}Controller extends AdminController
     /** Reglas de validación: campo => [reglas]. */
     private const RULES = {$rulesPhp};
 
+    /**
+     * Permiso que exige este módulo. Cambialo por un permiso propio del módulo si querés
+     * separarlo (agregalo al catálogo en config/overrides/permissions.php).
+     */
+    protected function requiredPermission(): string
+    {
+        return 'modules.manage';
+    }
+
     public function index(Request \$request): Response
     {
         \$pagination = Paginator::paginate('{$table}', [

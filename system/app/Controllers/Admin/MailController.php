@@ -20,10 +20,9 @@ use Core\Url;
  */
 final class MailController extends AdminController
 {
-    public function __construct()
+    protected function requiredPermission(): string
     {
-        parent::__construct();
-        $this->requirePermission('mail.manage');
+        return 'mail.manage';
     }
 
     public function queue(): Response

@@ -1,9 +1,19 @@
 <?php
-/** @var array $recentAudit @var array $recentJobs */
+/**
+ * @var array|null $recentAudit null = el usuario no tiene audit.view (no se muestra)
+ * @var array|null $recentJobs  null = el usuario no tiene cron.manage (no se muestra)
+ */
 use Core\View;
 use Core\Url;
+
+$showAudit = ($recentAudit ?? null) !== null;
+$showJobs = ($recentJobs ?? null) !== null;
+if (!$showAudit && !$showJobs) {
+    return;
+}
 ?>
-<div class="mb-8 grid gap-4 lg:grid-cols-2">
+<div class="mb-8 grid gap-4 <?= $showAudit && $showJobs ? 'lg:grid-cols-2' : '' ?>">
+    <?php if ($showAudit): ?>
     <div class="rounded-xl bg-white shadow-sm ring-1 ring-slate-200">
         <div class="flex items-center justify-between border-b border-slate-100 px-5 py-3">
             <h2 class="text-sm font-semibold text-slate-700">🕑 Actividad reciente</h2>
@@ -22,6 +32,8 @@ use Core\Url;
             <?php if (empty($recentAudit)): ?><li class="px-5 py-6 text-center text-sm text-slate-400">Sin actividad aún.</li><?php endif; ?>
         </ul>
     </div>
+    <?php endif; ?>
+    <?php if ($showJobs): ?>
     <div class="rounded-xl bg-white shadow-sm ring-1 ring-slate-200">
         <div class="flex items-center justify-between border-b border-slate-100 px-5 py-3">
             <h2 class="text-sm font-semibold text-slate-700">⚙️ Jobs recientes</h2>
@@ -39,4 +51,5 @@ use Core\Url;
             <?php if (empty($recentJobs)): ?><li class="px-5 py-6 text-center text-sm text-slate-400">No hay jobs todavía.</li><?php endif; ?>
         </ul>
     </div>
+    <?php endif; ?>
 </div>

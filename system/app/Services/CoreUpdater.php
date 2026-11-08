@@ -42,6 +42,9 @@ final class CoreUpdater
     /** Solo en applied.json: conflicto resuelto por merge 3-way sin choques. */
     public const MERGED = 'merged';
 
+    /** Razón del `skip` para un archivo del core editado por la app que el core no cambió. */
+    public const REASON_APP_EDIT = 'editado por la app; el core no lo cambió';
+
     /** Acciones que efectivamente modifican el árbol. */
     public const MUTATING = [self::ADD, self::UPDATE, self::CONFLICT, self::CONFLICT_ADD, self::DELETE];
 
@@ -97,6 +100,10 @@ final class CoreUpdater
                 $plan[] = self::entry($path, self::UPDATE, 'archivo del core sin modificar localmente');
             } elseif ($old === null) {
                 $plan[] = self::entry($path, self::CONFLICT_ADD, 'la app creó un archivo que ahora trae el core');
+            } elseif ($old === $newHash) {
+                // La app lo editó pero el core no lo cambió en esta versión: no hay nada que traer
+                // ni que mergear. Se conserva la versión local (antes salía como conflicto falso).
+                $plan[] = self::entry($path, self::SKIP, self::REASON_APP_EDIT);
             } else {
                 $plan[] = self::entry($path, self::CONFLICT, 'la app modificó un archivo del core') + ['old' => $old];
             }

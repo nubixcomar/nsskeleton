@@ -23,6 +23,12 @@ declare(strict_types=1);
  * ya seteó (merge, no overwrite).
  */
 return [
+    // Permiso que exige un controlador del admin que NO declara `requiredPermission()`
+    // (módulos generados antes de 1.20.3, controladores propios de la app). Default seguro:
+    // `modules.manage` (viewer afuera; admin/editor/superadmin adentro). `null` = solo sesión,
+    // el comportamiento previo a 1.20.3 (no recomendado). Override en config/overrides/security.php.
+    'admin_default_permission' => 'modules.manage',
+
     // Orígenes EXTRA por directiva (se suman a los base 'self' del core).
     'csp' => [
         'script_src'  => [],

@@ -24,6 +24,9 @@ ABM/CRUD funcional y enganchado al backend, sin escribir código repetitivo.
 2. Aplicar la migración (`php system/database/migrate.php`).
 3. Verificar el CRUD en `/admin/<tabla>` (listar, crear, editar, eliminar).
 4. Ajustar validaciones/labels si el dominio lo requiere.
+5. **Permiso:** el controlador generado declara `requiredPermission()` = `modules.manage`. Si el
+   módulo necesita un permiso propio (ej. `facturas.manage`), agregalo al catálogo en
+   `config/overrides/permissions.php`, asignalo a los roles y cambiá el `return` del controlador.
 
 ## Reglas
 - Respetar el aislamiento del feature (ver [`../../rules/new-features-rules.md`](../../rules/new-features-rules.md)):

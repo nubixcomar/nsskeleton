@@ -17,10 +17,9 @@ use Core\Url;
  */
 final class RoleController extends AdminController
 {
-    public function __construct()
+    protected function requiredPermission(): string
     {
-        parent::__construct();
-        $this->requirePermission('admins.manage');
+        return 'admins.manage';
     }
 
     public function index(): Response

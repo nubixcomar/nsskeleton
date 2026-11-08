@@ -122,7 +122,7 @@ Ver detalle en [`agentic/methodology/logging.md`](agentic/methodology/logging.md
 
 ## Estado del proyecto
 
-✅ **Versión 1.20.2** — 452 tests verdes, verificados contra MySQL.
+✅ **Versión 1.20.3** — 468 tests verdes, verificados contra MySQL.
 
 Sobre el MVP (núcleo MVC, login/perfiles, cron, emails, backups, gráficos, file manager, IA)
 se fue sumando:
@@ -149,6 +149,9 @@ se fue sumando:
   `latest.json` (descarga verificada por sha256, `--check`/`--latest`) y pantalla
   `/admin/core-update`; **`/nuevo-proyecto`** para crear un derivado en un paso; manuales
   remotos; metodología **Roadmap → Brief → Plan** (`planning/`, comandos `/roadmap` `/brief` `/plan`).
+  **v1.20.3**: hardening — todo controlador del admin exige un permiso declarado, dashboard con
+  widgets por permiso, usuarios desactivados afuera, `--check` sin drift por extensiones en
+  proyectos derivados y `rollback` global entre core y app.
 
 Detalle completo en [`docs/CHANGELOG.md`](docs/CHANGELOG.md).
 

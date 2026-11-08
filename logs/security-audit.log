@@ -1,0 +1,1 @@
+[2026-11-08 09:15:02] [AUDIT] Triage hallazgos nsWMS (core 1.20.2) | NSK-01..05 confirmados; NSK-01 ampliado (AiController::saveSettings + modulos de make-module sin permiso; Guard no revalida active); propuesta 1.20.3 = NSK-01/02/03, siguiente = NSK-04/05; sin cambios de codigo | modelo: claude-opus-5-5

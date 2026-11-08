@@ -34,6 +34,7 @@ Histórico acumulativo de features construidos (ver `agentic/methodology/sprints
 | Versión | Fecha | Features | Estado | Agente | Modelo |
 |---------|-------|----------|--------|--------|--------|
 | 1.20.0 | 2026-11-07 | Actualizador: merge 3-way + `latest.json` + `/admin/core-update` (RM-020) · manuales remotos (RM-021) · `/nuevo-proyecto` · metodología RM→BR→PL + helper `planning` (RM-022 🟡, PL-001 ✅) | ✅ | core-dev / release-manager | opus-5-5 |
+| 1.20.3 | 2026-11-08 | Hardening (BR-001 / PL-002): permiso declarado por controlador admin + default `modules.manage`, dashboard con widgets por permiso, usuario inactivo afuera, `--check` modo proyecto, `modules_menu.php`/`tests/app/` del proyecto, updater sin conflictos falsos, rollback global | ✅ | plan-executor / release-manager | opus-5-5 |
 
 ## Nota de verificación
 Todo el código pasa `php -l`. Los flujos que tocan MySQL fueron **verificados

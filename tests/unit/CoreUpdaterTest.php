@@ -155,3 +155,29 @@ it('loadLockFiles lee el mapa files del lock', function () use ($rrmdir) {
         $rrmdir($base);
     }
 });
+
+it('archivo editado por la app que el core NO cambió → skip (no conflicto) y sin .new (PL-002/F7)', function () use ($sha, $rrmdir) {
+    $base = sys_get_temp_dir() . '/nsupd_' . bin2hex(random_bytes(4));
+    $install = $base . '/install';
+    $source = $base . '/source';
+    @mkdir($install, 0775, true);
+    @mkdir($source, 0775, true);
+    file_put_contents($install . '/menu.php', 'APP');   // la app lo editó
+    file_put_contents($source . '/menu.php', 'CORE');   // el core lo trae igual que antes
+    try {
+        $lock = ['menu.php' => $sha('CORE')];          // old === new
+        $plan = CoreUpdater::plan($lock, $lock, $install, $source);
+        assertEquals(CoreUpdater::SKIP, $plan[0]['action']);
+        assertEquals(CoreUpdater::REASON_APP_EDIT, $plan[0]['reason']);
+
+        CoreUpdater::apply($plan, $install, $source, $base . '/backup');
+        assertEquals('APP', file_get_contents($install . '/menu.php'), 'se conserva la versión local');
+        assertFalse(is_file($install . '/menu.php.new'));
+
+        // Si el core SÍ lo cambió (old ≠ new), sigue siendo conflicto.
+        $plan2 = CoreUpdater::plan(['menu.php' => $sha('CORE')], ['menu.php' => $sha('CORE2')], $install, $source);
+        assertEquals(CoreUpdater::CONFLICT, $plan2[0]['action']);
+    } finally {
+        $rrmdir($base);
+    }
+});

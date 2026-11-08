@@ -16,6 +16,12 @@ use Core\Url;
  */
 final class ProfileController extends AdminController
 {
+    /** Solo sesión: cada usuario edita su propio perfil. */
+    protected function requiredPermission(): string
+    {
+        return self::AUTH_ONLY;
+    }
+
     public function show(): Response
     {
         return $this->view('admin/profile', [

@@ -134,6 +134,18 @@ final class FacturaController extends Controller {
 ```
 **Notas:** `abstract`. El Router lo instancia con `new Clase()` (constructor sin args).
 
+### `AdminController` — `system/app/Controllers/Admin/AdminController.php`
+**Qué hace:** Base de todo controlador del backend: exige sesión, revalida que el usuario siga existiendo y activo (si no, logout + login) y exige el **permiso declarado** por el controlador (1.20.3).
+**API (protected, para subclases):** `requiredPermission(): string` (sobrescribilo: devuelve el permiso RBAC que exige todo el controlador, o `self::AUTH_ONLY` para "solo sesión" a propósito) · `requirePermission(string $p)` (check extra por acción; 403 + `exit`) · `verifyCsrf(Request)`.
+**Uso típico:**
+```php
+final class FacturaController extends AdminController {
+    protected function requiredPermission(): string { return 'facturas.manage'; }
+    public function index(): Response { /* … */ }
+}
+```
+**Notas:** Un controlador que **no** declara `requiredPermission()` exige `security.admin_default_permission` (default `modules.manage`: `viewer` afuera, `admin`/`editor` adentro). `'admin_default_permission' => null` en `config/overrides/security.php` restaura el comportamiento previo (solo sesión; no recomendado). Los permisos nuevos van al catálogo en `config/overrides/permissions.php`. `tests/unit/AdminPermissionsTest.php` barre todas las rutas y falla si un controlador queda abierto. **Nunca** construyas un controlador admin en un test (`new X`): el constructor hace `exit`; usá `ReflectionClass::newInstanceWithoutConstructor()`.
+
 ### `View` — `system/app/Core/View.php`
 **Qué hace:** Renderiza vistas PHP planas con layout y patrón de **overrides** (la app puede sobrescribir cualquier vista del core).
 **API pública (static):** `render(string $view, array $data=[], ?string $layout='layouts/app', int $status=200): Response` · `partial(string $view, array $data=[]): string` · `exists(string $view): bool` · `e(mixed $value): string` (escape HTML).
@@ -235,7 +247,7 @@ use Core\Auth;
 if (Auth::attempt($login, $password)) { /* dashboard */ }
 $current = Auth::user();
 ```
-**Notas:** Tabla `admin_users(id,name,email,username,password,role,active)`. El lookup es `email` OR `username`, exige `active=1` en login. No incluye throttle: combiná con `LoginThrottle`.
+**Notas:** Tabla `admin_users(id,name,email,username,password,role,active)`. El lookup es `email` OR `username`, exige `active=1` en login. No incluye throttle: combiná con `LoginThrottle`. Desde 1.20.3, `user()` devuelve `null` si el usuario ya no existe o tiene `active = 0` (columna `active_column` del guard) y **nunca** incluye `password` ni `totp_secret` (quien los necesite hace su propio SELECT). `check()` sigue mirando solo la sesión: para "está logueado y activo" usá `user() !== null` (lo hace `AdminController`).
 
 ### `Crypto` — `system/app/Core/Crypto.php`
 **Qué hace:** Cifrado simétrico autenticado AES-256-GCM para secretos en reposo, clave derivada de `APP_KEY`.
@@ -353,13 +365,13 @@ date_default_timezone_set(\App\Services\AppSettings::timezone('America/Argentina
 
 ### `Migrator` — `system/app/Services/Migrator.php`
 **Qué hace:** Migraciones SQL por archivos con rollback; estado en `schema_migrations`.
-**API pública (static):** `dir()` · `ensureTable()` · `files(?dir)` · `parse(path): {up,down}` · `appliedNames()` · `migrate(?dir): array` · `rollback(int $steps=1, ?dir): array` · `status(?dir): array`.
+**API pública (static):** `dir()` · `appDir()` · `ensureTable()` · `files(?dir)` · `parse(path): {up,down}` · `appliedNames()` · `migrate(?dir): array` · `migrateCore()` · `migrateApp()` · `rollback(int $steps=1, ?dir): array` · `rollbackAcross(int $steps, array $dirs): array` · `status(?dir): array`.
 **Uso típico:**
 ```php
 \App\Services\Migrator::migrate();
 \App\Services\Migrator::rollback(1);
 ```
-**Notas:** Archivos `*.sql` ordenados alfabéticamente. El marcador de línea `-- @DOWN` separa `up` de `down`. El SQL se ejecuta con PDO multi-statement (DDL de archivos del repo, no input de usuario). Normalmente se invoca vía `php system/database/migrate.php`.
+**Notas:** Archivos `*.sql` ordenados alfabéticamente. El marcador de línea `-- @DOWN` separa `up` de `down`. El SQL se ejecuta con PDO multi-statement (DDL de archivos del repo, no input de usuario). Normalmente se invoca vía `php system/database/migrate.php`. **Rollback (1.20.3):** sin `$dir` es **global** sobre core + app, en orden inverso de aplicación (`applied_at` y, en empate, el orden en que `migrate()` las aplicó: core antes que app); con `$dir`, solo ese directorio. CLI: `migrate.php rollback [N] [--core|--app]`; `fresh` revierte y reaplica core + app.
 
 ### `Paginator` — `system/app/Services/Paginator.php`
 **Qué hace:** Paginación + búsqueda LIKE reutilizable. `meta()` es matemática pura; `paginate()` consulta la BD.
@@ -684,7 +696,7 @@ php system/console/project-role.php [--quiet|--mark[=nombre]]                   
 ```
 - **`new-project.php`** (solo desde el master): copia limpia en carpeta hermana → `nsproject.json` + roadmap/logs vacíos → `.env` (APP_KEY nueva, DB del master) → crea la DB + migrate + seed → `core-update.php --seed-base` → `git init -b main` + commit, sin remoto del skeleton. Aborta si la carpeta tiene archivos o la base existe. Ver `agentic/commands/nuevo-proyecto.md`.
 - **`make-module.php`** es la herramienta clave para construir tu dominio: genera migración + modelo + controlador admin (index con paginación/búsqueda, create/store/edit/update, soft-delete, trash/restore, export CSV/Excel/PDF) + vistas Tailwind + rutas, y actualiza el menú. Luego corré la migración. Ver §0 y el skill `module-generator`.
-- **`core-manifest.php`** clasifica archivos core vs app (reglas en `core-manifest.json`) y produce `core-lock.json` con checksums; lo usa `/release` y el actualizador.
+- **`core-manifest.php`** clasifica archivos core vs app (reglas en `core-manifest.json`) y produce `core-lock.json` con checksums; lo usa `/release` y el actualizador. `--check` en el master compara el árbol completo y lista `[nuevo]`/`[quitado]`/`[modificado]`; en un **proyecto derivado** (`nsproject.json`) verifica solo los archivos del lock (`[falta]`/`[modificado]`): lo que agrega el proyecto (puntos de extensión, módulos, `tests/app/`) no es drift. `--root=<dir>` cambia la raíz (tests).
 
 ### `CoreUpdate` — `system/app/Services/CoreUpdate.php`
 **Qué hace:** Orquesta el update de core completo; lo usan igual el CLI `core-update.php` y la pantalla `/admin/core-update`. Prepara el paquete (carpeta o zip, con defensa zip-slip), arma plan + vista previa del merge + chequeo de permisos de escritura, aplica con lock anti-concurrencia, backup de metadatos y base, migraciones del core e informe `report.json`, y hace rollback completo.
@@ -872,12 +884,12 @@ $crumbs = \App\Services\Breadcrumb::trail($_SERVER['REQUEST_URI'], $factura['num
 
 ### `Dashboard` — `system/app/Services/Dashboard.php`
 **Qué hace:** Resuelve el preset de dashboard activo y sus bloques (`config/dashboard.php` + override por settings).
-**API pública (static):** `presets(): array` · `active(): string` · `blocks(): array`.
+**API pública (static):** `presets(): array` · `active(): string` · `blocks(): array` · `visibleBlocks(array $blocks, callable $can): array` · `const BLOCK_PERMISSIONS`.
 **Uso típico:**
 ```php
-foreach (\App\Services\Dashboard::blocks() as $block) { /* render del partial del bloque */ }
+$blocks = \App\Services\Dashboard::visibleBlocks(\App\Services\Dashboard::blocks(), fn ($p) => \App\Services\Rbac::can($p));
 ```
-**Notas:** `config/dashboard.php` = `['default'=>..., 'presets'=>['nombre'=>['blocks'=>[...]]]]`. El preset activo se cambia persistiendo el setting `dashboard.preset` (fuera de esta clase). Tolera ausencia de BD.
+**Notas:** `config/dashboard.php` = `['default'=>..., 'presets'=>['nombre'=>['blocks'=>[...]]]]`. El preset activo se cambia persistiendo el setting `dashboard.preset` (fuera de esta clase). Tolera ausencia de BD. **Desde 1.20.3 el dashboard es abierto a todo usuario logueado y cada bloque exige su permiso** (`BLOCK_PERMISSIONS`): `kpis`/`charts` → `dashboard.view`; `alerts` → `logs.view`; `recent` → `audit.view` (auditoría) o `cron.manage` (jobs); `feed` y `modules` abiertos (la salud del feed exige `logs.view`; la galería filtra por ítem). Lo que no se puede ver llega a la vista en `null` y no se consulta. Un bloque propio de la app (no listado) se considera visible: su parcial decide.
 
 ### `GlobalSearch` — `system/app/Services/GlobalSearch.php`
 **Qué hace:** Búsqueda global del backend: recorre los módulos de `config/modules_menu.php`, deriva su tabla y busca en columnas de texto, agrupando por módulo.

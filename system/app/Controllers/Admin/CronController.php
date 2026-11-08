@@ -19,6 +19,11 @@ use Core\Url;
  */
 final class CronController extends AdminController
 {
+    protected function requiredPermission(): string
+    {
+        return 'cron.manage';
+    }
+
     public function index(): Response
     {
         return $this->view('admin/cron/index', [

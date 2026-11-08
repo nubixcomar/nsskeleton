@@ -13,10 +13,21 @@ Devuelve código de salida 1 si algún test falla (apto para CI / cron / pre-dep
 ```
 tests/
 ├── bootstrap.php     Helpers de aserción + registro (it, assert*, group)
-├── run.php           Descubre y ejecuta unit/ y feature/
+├── run.php           Descubre y ejecuta unit/, feature/ y app/
 ├── unit/             Tests sin dependencias externas (no requieren DB)
-└── feature/          Tests que tocan servicios externos (DB); se SKIPpean si no hay MySQL
+├── feature/          Tests que tocan servicios externos (DB); se SKIPpean si no hay MySQL
+└── app/              Tests PROPIOS del proyecto (no es core)
 ```
+
+### Tests del proyecto: `tests/app/`
+En un proyecto derivado, poné tus tests en `tests/app/*.php` (mismo formato que los demás).
+`unit/` y `feature/` son del core: el actualizador los pisa y `core-manifest.php --check`
+los verifica. `tests/app/` es tuyo: no viaja en el paquete de core, el actualizador nunca lo
+toca y no cuenta como drift.
+
+> ⚠ Nunca construyas un controlador del admin en un test (`new XController`): su constructor
+> hace `redirect()->send(); exit;` y corta la suite con un falso verde. Usá
+> `ReflectionClass::newInstanceWithoutConstructor()` (ver `unit/AdminPermissionsTest.php`).
 
 ## Escribir un test
 ```php

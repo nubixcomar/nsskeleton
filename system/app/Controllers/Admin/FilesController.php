@@ -16,10 +16,9 @@ use Core\Url;
  */
 final class FilesController extends AdminController
 {
-    public function __construct()
+    protected function requiredPermission(): string
     {
-        parent::__construct();
-        $this->requirePermission('files.manage');
+        return 'files.manage';
     }
 
     public function index(Request $request): Response

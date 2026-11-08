@@ -17,10 +17,9 @@ use Core\Url;
  */
 final class BackupController extends AdminController
 {
-    public function __construct()
+    protected function requiredPermission(): string
     {
-        parent::__construct();
-        $this->requirePermission('backup.manage');
+        return 'backup.manage';
     }
 
     public function index(): Response

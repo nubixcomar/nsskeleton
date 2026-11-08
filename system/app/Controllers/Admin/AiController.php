@@ -19,6 +19,11 @@ use Core\Url;
  */
 final class AiController extends AdminController
 {
+    protected function requiredPermission(): string
+    {
+        return 'ai.manage';
+    }
+
     public function settings(): Response
     {
         $ai = Settings::group('ai');

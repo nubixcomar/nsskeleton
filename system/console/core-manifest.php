@@ -22,9 +22,51 @@ if (PHP_SAPI !== 'cli') {
 }
 
 $root = dirname(__DIR__, 2); // .../skeleton
+foreach ($argv as $arg) {
+    // --root=<dir>: otra raíz (lo usan los tests con un árbol temporal).
+    if (str_starts_with($arg, '--root=') && $arg !== '--root=') {
+        $root = rtrim(str_replace('\\', '/', substr($arg, 7)), '/');
+    }
+}
 $manifestFile = $root . '/core-manifest.json';
 $lockFile     = $root . '/core-lock.json';
 $check        = in_array('--check', $argv, true);
+
+// ── --check en un PROYECTO DERIVADO (PL-002/F6) ──────────────────────────────
+// El lock describe el core que el proyecto RECIBIÓ: se verifican solo esos archivos (faltantes o
+// modificados = drift). Lo que el proyecto agrega (routes.app.php, overrides, migraciones y
+// módulos propios, tests/app/…) no es del core y no cuenta, igual que para el actualizador.
+if ($check && is_file($root . '/nsproject.json')) {
+    $lockData = is_file($lockFile) ? json_decode((string) file_get_contents($lockFile), true) : null;
+    $lockFiles = is_array($lockData) && is_array($lockData['files'] ?? null) ? $lockData['files'] : null;
+    if ($lockFiles === null) {
+        fwrite(STDERR, "DRIFT (modo proyecto): no hay un core-lock.json válido en {$root}\n");
+        exit(1);
+    }
+    $issues = [];
+    foreach ($lockFiles as $path => $hash) {
+        $abs = $root . '/' . $path;
+        if (!is_file($abs)) {
+            $issues[] = "[falta]      {$path}";
+        } elseif (hash_file('sha256', $abs) !== $hash) {
+            $issues[] = "[modificado] {$path}";
+        }
+    }
+    $n = count($lockFiles);
+    if ($issues === []) {
+        echo "core-lock.json OK — modo proyecto: {$n} archivos del core verificados (los archivos nuevos son del proyecto).\n";
+        exit(0);
+    }
+    fwrite(STDERR, "DRIFT (modo proyecto): " . count($issues) . " de {$n} archivos del core difieren del lock:\n");
+    foreach (array_slice($issues, 0, 20) as $i) {
+        fwrite(STDERR, "  {$i}\n");
+    }
+    if (count($issues) > 20) {
+        fwrite(STDERR, '  … y ' . (count($issues) - 20) . " más\n");
+    }
+    fwrite(STDERR, "Si editaste archivos del core, movelos a un override (ver docs/CORE-UPDATE.md §2).\n");
+    exit(1);
+}
 
 // En un proyecto derivado el lock describe el core RECIBIDO: regenerarlo metería las
 // ediciones de la app como si fueran del core y el actualizador dejaría de verlas.
@@ -149,6 +191,27 @@ if ($check) {
         exit(0);
     }
     fwrite(STDERR, "DRIFT: core-lock.json no coincide con el arbol. Corre 'php system/console/core-manifest.php' para regenerarlo.\n");
+    // Qué difiere (agregados / quitados / modificados respecto del lock actual).
+    $old = json_decode($current, true);
+    $oldFiles = is_array($old) && is_array($old['files'] ?? null) ? $old['files'] : [];
+    $diff = [];
+    foreach (array_diff_key($lock, $oldFiles) as $p => $_) {
+        $diff[] = "[nuevo]      {$p}";
+    }
+    foreach (array_diff_key($oldFiles, $lock) as $p => $_) {
+        $diff[] = "[quitado]    {$p}";
+    }
+    foreach (array_intersect_key($lock, $oldFiles) as $p => $h) {
+        if ($oldFiles[$p] !== $h) {
+            $diff[] = "[modificado] {$p}";
+        }
+    }
+    foreach (array_slice($diff, 0, 20) as $d) {
+        fwrite(STDERR, "  {$d}\n");
+    }
+    if (count($diff) > 20) {
+        fwrite(STDERR, '  … y ' . (count($diff) - 20) . " más\n");
+    }
     exit(1);
 }
 

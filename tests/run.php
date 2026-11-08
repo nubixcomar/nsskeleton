@@ -16,7 +16,9 @@ if (PHP_SAPI !== 'cli') {
 
 require __DIR__ . '/bootstrap.php';
 
-foreach (['unit', 'feature'] as $suite) {
+// unit + feature = core; app = tests propios del proyecto (tests/app/, no es core: no viaja en el
+// paquete de core ni lo toca el actualizador).
+foreach (['unit', 'feature', 'app'] as $suite) {
     foreach (glob(__DIR__ . '/' . $suite . '/*.php') ?: [] as $file) {
         require $file;
     }

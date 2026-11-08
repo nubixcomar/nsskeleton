@@ -20,6 +20,12 @@ use Core\Url;
  */
 final class TwoFactorController extends AdminController
 {
+    /** Solo sesión: cada usuario gestiona su propio 2FA. */
+    protected function requiredPermission(): string
+    {
+        return self::AUTH_ONLY;
+    }
+
     public function setup(): Response
     {
         $user = Auth::user() ?? [];

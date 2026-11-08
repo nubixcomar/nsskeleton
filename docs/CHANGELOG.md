@@ -5,6 +5,53 @@ Lo mantiene el comando `/release` (ver `agentic/commands/release.md`).
 
 ## [Sin publicar]
 
+## [1.20.3] — 2026-11-08
+**Resumen:** hardening del admin y de la frontera core/app a partir del informe del proyecto
+nsWMS (brief BR-001, plan PL-002). Cierra un problema crítico de permisos: cualquier usuario
+del backend podía crear y ejecutar tareas cron con comandos de shell. Suite: 468 tests verdes.
+
+**Seguridad**
+- **Permiso declarado por controlador** (`AdminController::requiredPermission()`): todo
+  controlador del admin exige un permiso o se declara "solo sesión" (`AUTH_ONLY`) a propósito.
+  Antes, `Cron`, `Ai` (incluido cambiar la API key), `Health`, `Search` y los **módulos
+  generados por `make-module`** solo pedían sesión.
+- Un controlador que no declara permiso exige `security.admin_default_permission`
+  (`modules.manage` por defecto): un controlador nuevo nunca queda abierto por omisión.
+- **Dashboard abierto con widgets filtrados**: KPIs y gráficos con `dashboard.view`, alertas y
+  salud del sistema con `logs.view`, auditoría con `audit.view`, jobs con `cron.manage`. Lo que no
+  se puede ver no se consulta. Estado (`/admin/health`) pasa a `logs.view` en menú y galería; el
+  buscador global se muestra solo con `modules.manage`.
+- **Usuario desactivado o borrado** pierde el acceso en el request siguiente (`Guard::user()`
+  revalida `active`; el admin cierra la sesión). `Auth::user()` ya no devuelve `totp_secret`.
+- Test `AdminPermissionsTest`: barre todas las rutas y falla si un controlador admin queda
+  abierto o exige un permiso que tiene `viewer`.
+
+**Frontera core/app y actualizador**
+- `core-manifest.php --check` en un **proyecto derivado** verifica solo los archivos del lock:
+  los archivos propios (puntos de extensión, módulos, tests) ya no son drift. En el master lista
+  qué difiere. Opción `--root`.
+- `system/config/modules_menu.php` (lo escribe `make-module`) y `tests/app/` (tests propios, los
+  recorre `tests/run.php`) pasan a ser **del proyecto**: no viajan en el paquete de core.
+- El actualizador ya no marca conflicto en un archivo del core que la app editó **si el core no
+  lo cambió**: lo conserva (`skip`) y lo lista aparte en la CLI y en el panel.
+
+**Migraciones**
+- `migrate.php rollback [N]` revierte en orden global entre core y app (antes revertía siempre
+  la última del **core**, aunque la última aplicada fuera de la app). `--core` / `--app` limitan
+  a un directorio. `fresh` revierte y reaplica core + app. Nuevo `Migrator::rollbackAcross()`.
+
+**Notas de actualización**
+- Sin migraciones de esquema.
+- **Roles propios**: los controladores sin declaración ahora exigen `modules.manage`. Si un rol
+  custom pierde acceso a módulos generados, dale ese permiso o declará `requiredPermission()` en
+  el controlador. Para volver al comportamiento previo (no recomendado):
+  `config/overrides/security.php` → `return ['admin_default_permission' => null];`.
+- Un rol sin `logs.view` deja de ver `/admin/health`, las alertas y la salud del dashboard.
+- Proyectos creados antes: el primer update borra `system/config/modules_menu.php` si nunca
+  generaste módulos (`make-module` lo recrea) o lo conserva si ya lo usaste.
+- `migrate.php rollback` sin flag ahora es global: si tus scripts esperaban "solo core", usá `--core`.
+- Tests propios: movelos a `tests/app/` (en `tests/unit|feature` los pisa el actualizador).
+
 ## [1.20.2] — 2026-11-07
 **Resumen:** el `.env` ya no mete los comentarios al final de línea dentro de los valores.
 

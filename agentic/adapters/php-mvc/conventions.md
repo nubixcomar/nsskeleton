@@ -42,6 +42,12 @@ Bindings concretos del stack por defecto (PHP MVC propio + MySQL).
 - **Tablas:** `snake_case` plural (ej. `admin_users`, `cron_tasks`).
 - **Migraciones:** archivo `YYYYMMDD_HHMM_descripcion.sql`, idempotentes donde sea posible.
 - **Rutas:** definidas en `system/config/routes.php`.
+- **Permisos del admin:** todo controlador que extiende `AdminController` declara
+  `protected function requiredPermission(): string` (permiso RBAC, o `self::AUTH_ONLY` si solo
+  pide sesión a propósito). Si no lo declara, exige `security.admin_default_permission`
+  (`modules.manage`). Ver `agentic/knowledge/core-manual.md` § `AdminController`.
+- **Tests:** los del proyecto van en `tests/app/` (no es core). **Nunca** construir un controlador
+  admin en un test (`new X`): el constructor hace `exit`; usar `newInstanceWithoutConstructor()`.
 - **Logging app:** `system/storage/logs/`. (Distinto de los logs agénticos en `logs/`.)
 - **PHP CLI (XAMPP):** `C:/xampp/php/php.exe`.
 
